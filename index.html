@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProsthoBoss - Mastery in Removable Prosthodontics</title>
+    <!-- Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            document.documentElement.classList.remove('dark');
+        } else {
+            document.documentElement.classList.add('dark');
+            if (!savedTheme) localStorage.setItem('theme', 'dark');
+        }
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            pink: '#db2777',
+                            light: '#fdf2f8',
+                            dark: '#831843'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .option-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .option-card:active {
+            transform: scale(0.98);
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+        .glass-morphism {
+            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.8);
+        }
+        .dark .glass-morphism {
+            background: rgba(15, 23, 42, 0.8);
+        }
+        .loading-screen {
+            background: #ffffff;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out;
+        }
+        .dark .loading-screen {
+            background: #020617;
+        }
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(219, 39, 119, 0.1);
+            border-top: 6px solid #db2777;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .logo-main {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            margin-bottom: 1.25rem;
+            filter: drop-shadow(0 10px 15px rgba(219, 39, 119, 0.3));
+        }
+        .floating-side-icon {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100px;
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .dark .floating-side-icon {
+            opacity: 0.1;
+        }
+        @media (max-width: 1024px) {
+            .floating-side-icon { display: none; }
+        }
+
+        .typing-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            padding: 2rem;
+            text-align: center;
+            direction: rtl;
+        }
+        .typewriter-text {
+            border-right: 3px solid #db2777;
+            white-space: pre-wrap;
+            overflow: hidden;
+            display: inline-block;
+            animation: caret 0.75s step-end infinite;
+        }
+        @keyframes caret {
+            from, to { border-color: transparent }
+            50% { border-color: #db2777; }
+        }
+
+        .full-nudge {
+            position: fixed;
+            inset: 0;
+            background: #000; /* Background is now black as requested */
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            cursor: pointer;
+            direction: rtl;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #db2777;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 transition-colors duration-500 dark:bg-slate-950 dark:text-slate-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        // Full Question Data (440 total)
+        const LECTURES = [
+            {
+                id: 1, title: "Lecture 1: Introduction to Technology", description: "Definitions, foundations, and clinical vs laboratory procedures.",
+                questions: [
+                    { text: "The art and science of supplying artificial replacements for missing body parts is:", options: ["Prosthesis", "Prosthetics", "Prosthodontics", "Restoration"], correctAnswer: "Prosthetics" },
+                    { text: "A 'Prosthesis' is defined as:", options: ["The dental specialty", "The condition of having teeth", "The actual artificial appliance", "The surgical procedure"], correctAnswer: "The actual artificial appliance" },
+                    { text: "A patient with a full set of natural teeth is in a ____ state.", options: ["Edentulous", "Partially edentulous", "Dentulous", "Prosthetic"], correctAnswer: "Dentulous" },
+                    { text: "Retention in a complete denture primarily resists:", options: ["Horizontal forces", "Vertical dislodging forces", "Tissue-ward forces", "Rotational forces"], correctAnswer: "Vertical dislodging forces" },
+                    { text: "Support is the quality that resists forces directed:", options: ["Away from the tissue", "Towards the tissue", "Laterally", "Along the path of placement"], correctAnswer: "Towards the tissue" },
+                    { text: "Stability resists displacement caused by:", options: ["Gravity", "Vertical pull", "Functional horizontal or rotational forces", "Tacky foods only"], correctAnswer: "Functional horizontal or rotational forces" },
+                    { text: "The foundation of the denture that rests on supporting structures is the:", options: ["Artificial teeth", "Denture border", "Denture base", "Denture flange"], correctAnswer: "Denture base" },
+                    { text: "The surface of the denture in contact with the oral mucosa is the:", options: ["Polished surface", "Occlusal surface", "Fitting surface", "Labial surface"], correctAnswer: "Fitting surface" },
+                    { text: "The vertical extension from the cervix of the teeth to the peripheries is the:", options: ["Border", "Flange", "Base", "Notch"], correctAnswer: "Flange" },
+                    { text: "The side (cheek) extension of the denture is called:", options: ["Labial flange", "Lingual flange", "Buccal flange", "Palatal flange"], correctAnswer: "Buccal flange" },
+                    { text: "Which of the following is NOT an objective of a complete denture?", options: ["Restore masticatory efficiency", "Restore facial contour", "Increase bone resorption", "Correct speech defects"], correctAnswer: "Increase bone resorption" },
+                    { text: "The first step in the construction of a complete denture is:", options: ["Preliminary impression", "Special tray construction", "Examination, diagnosis, and treatment planning", "Jaw relation record"], correctAnswer: "Examination, diagnosis, and treatment planning" },
+                    { text: "Preliminary impressions are usually made using:", options: ["Special trays", "Master casts", "Stock trays", "Occlusion blocks"], correctAnswer: "Stock trays" },
+                    { text: "Final impressions are taken using:", options: ["Stock trays", "Special (Custom) trays", "Study casts", "Wax blocks"], correctAnswer: "Special (Custom) trays" },
+                    { text: "The step where the dentist checks the tooth arrangement in the patient’s mouth is:", options: ["Delivery", "Try-in", "Waxing-up", "Mounting"], correctAnswer: "Try-in" },
+                    { text: "Which of these is a Laboratory procedure?", options: ["Patient examination", "Final impression", "Construction of master casts", "Jaw relation recording"], correctAnswer: "Construction of master casts" },
+                    { text: "Which of these is a Clinical procedure?", options: ["Processing and polishing", "Setting up artificial teeth", "Denture delivery & follow-up", "Construction of special trays"], correctAnswer: "Denture delivery & follow-up" },
+                    { text: "The 'Specialty' in dentistry focused on prostheses is:", options: ["Periodontics", "Prosthodontics", "Orthodontics", "Endodontics"], correctAnswer: "Prosthodontics" },
+                    { text: "The junction of the polished and fitting surfaces is the:", options: ["Denture base", "Denture borders", "Occlusal surface", "Modiolus"], correctAnswer: "Denture borders" },
+                    { text: "A 'Removable Complete Denture' replaces:", options: ["Only the teeth", "Only the maxillary arch", "Entire dentition and associated structures of both arches", "Only one missing tooth"], correctAnswer: "Entire dentition and associated structures of both arches" }
+                ]
+            },
+            {
+                id: 2, title: "Lecture 2: Extraoral Landmarks", description: "Facial analysis, nasolabial sulcus, and prosthetic guidelines.",
+                questions: [
+                    { text: "The depression extending from the ala of the nose to the corner of the mouth is:", options: ["Mentolabial sulcus", "Nasolabial sulcus", "Philtrum", "Modiolus"], correctAnswer: "Nasolabial sulcus" },
+                    { text: "The nasolabial sulcus ____ after teeth extraction.", options: ["Flattens", "Disappears", "Deepens", "Becomes convex"], correctAnswer: "Deepens" },
+                    { text: "The mentolabial sulcus is located between:", options: ["Upper lip and nose", "Lower lip and chin", "Two cheeks", "Eyes and ears"], correctAnswer: "Lower lip and chin" },
+                    { text: "A Class II jaw relationship is associated with a ____ mentolabial angle.", options: ["Obtuse", "180 degree", "Acute", "Straight"], correctAnswer: "Acute" },
+                    { text: "A concave facial profile is characteristic of:", options: ["Class I", "Class II", "Class III", "Class IV"], correctAnswer: "Class III" },
+                    { text: "The philtrum is a ____ area between the nasal septum and upper lip.", options: ["Square-shaped", "Diamond-shaped", "Circular", "Triangular"], correctAnswer: "Diamond-shaped" },
+                    { text: "The transition between the lip mucosa and the skin is the:", options: ["Philtrum", "Modiolus", "Vermillion border", "Mentolabial sulcus"], correctAnswer: "Vermillion border" },
+                    { text: "Angular cheilitis can be caused by:", options: ["High vertical dimension", "Vitamin B deficiency", "Excessive flange thickness", "Too many natural teeth"], correctAnswer: "Vitamin B deficiency" },
+                    { text: "The meeting point of the upper and lower lips is the:", options: ["Philtrum", "Commissures (Angle of mouth)", "Modiolus", "Ala"], correctAnswer: "Commissures (Angle of mouth)" },
+                    { text: "The point where several facial muscles meet is the:", options: ["Philtrum", "Mentolabial sulcus", "Modiolus", "Tragus"], correctAnswer: "Modiolus" },
+                    { text: "Drooping or sunken cheeks are often due to the loss of support from:", options: ["The tongue", "The teeth and denture base", "The ears", "The eyes"], correctAnswer: "The teeth and denture base" },
+                    { text: "The imaginary line between both pupils is the:", options: ["Ala-tragus line", "Canthus-tragus line", "Inter-pupillary line", "Camper’s line"], correctAnswer: "Inter-pupillary line" },
+                    { text: "The Inter-pupillary line is used to establish the:", options: ["Posterior occlusal plane", "Anterior occlusal plane", "Condyle position", "Vertical dimension"], correctAnswer: "Anterior occlusal plane" },
+                    { text: "Camper’s line (Ala-tragus line) is used to establish the:", options: ["Anterior occlusal plane", "Posterior occlusal plane", "Philtrum depth", "Mentolabial sulcus"], correctAnswer: "Posterior occlusal plane" },
+                    { text: "The Canthus-tragus line is used to locate the:", options: ["Lip thickness", "Condyle position", "Vertical dimension", "Nasolabial sulcus"], correctAnswer: "Condyle position" },
+                    { text: "In Class I jaw relationship, the mentolabial angle is usually:", options: ["Acute", "Obتuse (gentle curve)", "180 degrees", "45 degrees"], correctAnswer: "Obتuse (gentle curve)" },
+                    { text: "Which landmark flattens after tooth loss and is restored by proper tooth positioning?", options: ["Mentolabial sulcus", "Philtrum", "Modiolus", "Ala-tragus line"], correctAnswer: "Philtrum" },
+                    { text: "A convex facial profile is seen in:", options: ["Class I", "Class II", "Class III", "All edentulous patients"], correctAnswer: "Class II" },
+                    { text: "The 'Ala' refers to the:", options: ["Ear", "Eye corner", "Side of the nose", "Chin"], correctAnswer: "Side of the nose" },
+                    { text: "Proper vertical dimension and flange thickness primarily restore the ____ depth.", options: ["Canthus-tragus", "Nasolabial sulcus", "Inter-pupillary", "Camper’s"], correctAnswer: "Nasolabial sulcus" }
+                ]
+            },
+            {
+                id: 3, title: "Lecture 3: Maxillary Intraoral Landmarks", description: "Stress-bearing areas, tuberosity, and palatal landmarks.",
+                questions: [
+                    { text: "The effectiveness of bearing areas depends on:", options: ["Type of covering mucosa", "Nature of underlying bone", "Direction of force", "All of the above"], correctAnswer: "All of the above" },
+                    { text: "The ideal mucosa for a denture-bearing area is:", options: ["Thin and non-keratinized", "Thick, firmly attached, and keratinized", "Loose and movable", "Very thick and fatty"], correctAnswer: "Thick, firmly attached, and keratinized" },
+                    { text: "Too thin mucosa over a bearing area results in:", options: ["Easy inflammation", "Better retention", "Less resorption", "Denture displacement"], correctAnswer: "Easy inflammation" },
+                    { text: "Which bone type has a high resorption rate and low resistance to force?", options: ["Compact bone", "D3 bone", "Cortical bone", "Thick cancellous bone"], correctAnswer: "D3 bone" },
+                    { text: "Functional forces should ideally be directed:", options: ["Horizontally", "Vertically and perpendicular to support tissues", "At a 45-degree angle", "Away from the ridge"], correctAnswer: "Vertically and perpendicular to support tissues" },
+                    { text: "Maximal tissue coverage by the denture base helps:", options: ["Increase stress on bone", "Distribute force widely and preserve tissue health", "Decrease stability", "Accelerate resorption"], correctAnswer: "Distribute force widely and preserve tissue health" },
+                    { text: "A primary stress-bearing area in the maxilla is the:", options: ["Rugae area", "Hard palate (sides of palatal raphe)", "Labial frenum", "Incisive papilla"], correctAnswer: "Hard palate (sides of palatal raphe)" },
+                    { text: "Maxillary buccal slopes resist ____ forces.", options: ["Vertical", "Lateral", "Rotational", "Dislodging"], correctAnswer: "Lateral" },
+                    { text: "The rounded bulging stress-bearing area at the end of the maxillary ridge is the:", options: ["Hamular notch", "Tuberosity", "Fovea palatinae", "Incisive papilla"], correctAnswer: "Tuberosity" },
+                    { text: "Maxillary tuberosities provide:", options: ["Retention", "Support", "Lateral stability", "All of the above"], correctAnswer: "All of the above" },
+                    { text: "The secondary stress-bearing area in the maxilla is the:", options: ["Alveolar ridge", "Hard palate", "Rugae area", "Hamular notch"], correctAnswer: "Rugae area" },
+                    { text: "The rugae area is primarily used for:", options: ["Primary support", "Phonation (e.g., “S” sound)", "Stress bearing", "Limiting the border"], correctAnswer: "Phonation (e.g., “S” sound)" },
+                    { text: "The pear-shaped elevation at the midline behind the ridge crest is the:", options: ["Fovea palatinae", "Incisive papilla", "Median palatine raphe", "Torus palatinus"], correctAnswer: "Incisive papilla" },
+                    { text: "The incisive papilla covers the:", options: ["Mental nerve", "Nasopalatine nerves and vessels", "Salivary ducts", "Pterygoid hamulus"], correctAnswer: "Nasopalatine nerves and vessels" },
+                    { text: "Failure to relieve the incisive papilla leads to:", options: ["Excessive retention", "Burning sensation", "Midline fracture", "Gagging"], correctAnswer: "Burning sensation" },
+                    { text: "The raised midline area covering the palatal suture is the:", options: ["Median palatine raphe", "Rugae", "Tuberosity", "Hamular notch"], correctAnswer: "Median palatine raphe" },
+                    { text: "Lack of relief for the median palatine raphe may cause:", options: ["Midline fracture of the denture", "Rocking of the denture", "Sensitivity", "All of the above"], correctAnswer: "All of the above" },
+                    { text: "A bony ridge in the center of the hard palate is called:", options: ["Torus mandibularis", "Torus palatinus", "Exostosis", "Palatal raphe"], correctAnswer: "Torus palatinus" },
+                    { text: "The fibrous band connecting the lip to the maxillary ridge is the:", options: ["Buccal frenum", "Labial frenum", "Lingual frenum", "Pterygomandibular raphe"], correctAnswer: "Labial frenum" },
+                    { text: "The height of the labial vestibule reflection determines the:", options: ["Tooth size", "Flange length", "Palatal seal", "Support"], correctAnswer: "Flange length" },
+                    { text: "The buccal frenum is moved by which muscles?", options: ["Masseter and Temporalis", "Orbicularis oris and Buccinator", "Genioglossus", "Mentalis"], correctAnswer: "Orbicularis oris and Buccinator" },
+                    { text: "The buccal vestibule is related to the ____ muscle.", options: ["Masseter", "Mylohyoid", "Buccinator", "Mentalis"], correctAnswer: "Buccinator" },
+                    { text: "The depression between the tuberosity and the pterygoid hamulus is the:", options: ["Fovea palatinae", "Hamular notch", "Labial notch", "Vibrating line"], correctAnswer: "Hamular notch" },
+                    { text: "The posterior border of the maxillary denture should pass through the:", options: ["Rugae", "Hamular notches", "Incisive papilla", "Buccal frenum"], correctAnswer: "Hamular notches" },
+                    { text: "The fovea palatinae are ducts for:", options: ["Major salivary glands", "Minor salivary glands", "Nasopalatine nerves", "Lymph nodes"], correctAnswer: "Minor salivary glands" },
+                    { text: "The denture border should be ____ posterior to the fovea palatinae.", options: ["0.5 mm", "1 mm", "2 mm", "5 mm"], correctAnswer: "2 mm" },
+                    { text: "The junction between the immovable and movable soft palate is the:", options: ["Median raphe", "Vibrating line", "Hamular notch", "Rugae"], correctAnswer: "Vibrating line" },
+                    { text: "The vibrating line determines the:", options: ["Anterior seal", "Posterior palatal seal (PPS)", "Support", "Lateral stability"], correctAnswer: "Posterior palatal seal (PPS)" },
+                    { text: "Which maxillary area is covered by compact bone and resists lateral stress?", options: ["Palatal vault", "Buccal slopes of the ridge", "Rugae", "Fovea"], correctAnswer: "Buccal slopes of the ridge" },
+                    { text: "A 'High V-shaped' palate often presents with:", options: ["Poor retention", "Thick ridge", "No undercuts", "Thin mucosa"], correctAnswer: "Thick ridge" },
+                    { text: "Undercuts in the tuberosity area may require:", options: ["More pressure", "Surgical correction", "Thicker flanges", "No relief"], correctAnswer: "Surgical correction" },
+                    { text: "The hard palate area is covered by ____ bone.", options: ["Only compact", "Only cortical", "Cancellous bone + keratinized mucosa", "D3 bone only"], correctAnswer: "Cancellous bone + keratinized mucosa" },
+                    { text: "The 'Pear-shaped' landmark is the:", options: ["Tuberosity", "Incisive papilla", "Retromolar pad", "Fovea"], correctAnswer: "Incisive papilla" },
+                    { text: "If a denture rocks during function, the most likely maxillary area needing relief is:", options: ["Labial vestibule", "Median palatine raphe", "Hamular notch", "Buccal frenum"], correctAnswer: "Median palatine raphe" },
+                    { text: "The labial notch in the denture border is for the:", options: ["Buccal frenum", "Labial frenum", "Philtrum", "Teeth"], correctAnswer: "Labial frenum" },
+                    { text: "The buccal vestibule extends from the buccal frenum to the:", options: ["Labial frenum", "Hamular notch", "Incisive papilla", "Midline"], correctAnswer: "Hamular notch" },
+                    { text: "The junction between attached tissues and slightly movable tissues is the:", options: ["Anterior vibrating line", "Posterior vibrating line", "Hamular notch", "Fovea palatinae"], correctAnswer: "Anterior vibrating line" },
+                    { text: "The vibrating line is located on the:", options: ["Hard palate", "Soft palate", "Alveolar ridge", "Tuberosity"], correctAnswer: "Soft palate" },
+                    { text: "The fovea palatinae are located ____ to the vibrating line.", options: ["Anterior", "Posterior", "Directly on", "Lateral"], correctAnswer: "Anterior" },
+                    { text: "How many foveae palatinae are typically present?", options: ["One", "Two", "Three", "Numerous"], correctAnswer: "Two" }
+                ]
+            },
+            {
+                id: 4, title: "Lecture 4: Mandibular Intraoral Landmarks", description: "Buccal shelf, retromolar pad, and lingual pouch analysis.",
+                questions: [
+                    { text: "The primary stress-bearing area in the mandible is the:", options: ["Alveolar ridge crest", "Buccal shelf area", "Mental foramen", "Genial tubercles"], correctAnswer: "Buccal shelf area" },
+                    { text: "The buccal shelf area is primary because it is covered with:", options: ["Cancellous bone", "Dense cortical bone", "Loose mucosa", "Salivary glands"], correctAnswer: "Dense cortical bone" },
+                    { text: "The buccal shelf is bounded laterally by the:", options: ["Crest of the ridge", "External oblique ridge", "Buccal frenum", "Retromolar pad"], correctAnswer: "External oblique ridge" },
+                    { text: "The buccal shelf is bounded medially by the:", options: ["External oblique ridge", "Crest of the ridge", "Lingual frenum", "Mylohyoid ridge"], correctAnswer: "Crest of the ridge" },
+                    { text: "Why do buccinator fibers NOT dislodge the denture at the buccal shelf?", options: ["They are vertical", "They run horizontally", "They are absent", "They are paralyzed"], correctAnswer: "They run horizontally" },
+                    { text: "The residual alveolar ridge crest in the mandible is made of ____ bone.", options: ["Compact", "Cancellous", "Cortical", "Solid"], correctAnswer: "Cancellous" },
+                    { text: "The mandibular ridge crest is ____ for a primary stress-bearing area.", options: ["Suitable", "Not suitable", "The best", "Thick enough"], correctAnswer: "Not suitable" },
+                    { text: "Horizontal forces are resisted by the ____ of the ridge.", options: ["Crest", "Slopes (Buccal & Lingual)", "Base", "Border"], correctAnswer: "Slopes (Buccal & Lingual)" },
+                    { text: "Which ridge classification always requires relief?", options: ["High well-rounded", "Knife-edge ridge", "Flat ridge", "Low well-rounded"], correctAnswer: "Knife-edge ridge" },
+                    { text: "The mental foramen is located between the roots of:", options: ["Central and lateral incisors", "1st and 2nd premolars", "1st and 2nd molars", "Canines"], correctAnswer: "1st and 2nd premolars" },
+                    { text: "Severe resorption may bring the mental foramen to the:", options: ["Ridge crest", "Floor of the mouth", "Buccal shelf", "Retromolar pad"], correctAnswer: "Ridge crest" },
+                    { text: "Pressure on the mental foramen causes ____ of the lower lip.", options: ["Swelling", "Numbness and pain", "Bleeding", "Dryness"], correctAnswer: "Numbness and pain" },
+                    { text: "Torus mandibularis is usually found on the ____ surface.", options: ["Buccal", "Lingual", "Occlusal", "Distal"], correctAnswer: "Lingual" },
+                    { text: "The internal oblique ridge is also known as the:", options: ["Buccal shelf", "Mylohyoid ridge", "Genial tubercles", "Mental spine"], correctAnswer: "Mylohyoid ridge" },
+                    { text: "The mylohyoid muscle attaches to the:", options: ["External oblique ridge", "Internal oblique ridge", "Genial tubercles", "Buccal frenum"], correctAnswer: "Internal oblique ridge" },
+                    { text: "Tiny projections on the inner midline of the mandible are the:", options: ["Mental foramina", "Genial tubercles (Mental spine)", "Torus mandibularis", "Mylohyoid ridge"], correctAnswer: "Genial tubercles (Mental spine)" },
+                    { text: "Genial tubercles attach the ____ muscles.", options: ["Buccinator", "Genioglossus and Geniohyoid", "Masseter", "Temporalis"], correctAnswer: "Genioglossus and Geniohyoid" },
+                    { text: "The strong bony ridge running from the ramus to the mental foramen is the:", options: ["Internal oblique ridge", "External oblique ridge", "Mylohyoid ridge", "Alveolar ridge"], correctAnswer: "External oblique ridge" },
+                    { text: "The soft tissue pad at the posterior of the mandibular ridge is the:", options: ["Tuberosity", "Retromolar pad", "Buccal shelf", "Pouch"], correctAnswer: "Retromolar pad" },
+                    { text: "The retromolar pad is ____ shaped.", options: ["Diamond", "Pear", "Square", "Round"], correctAnswer: "Pear" },
+                    { text: "Which muscle NOT related to the retromolar pad?", options: ["Buccinator", "Superior constrictor", "Masseter", "Temporalis"], correctAnswer: "Masseter" },
+                    { text: "The retromolar pad serves as a key ____ seal.", options: ["Anterior", "Posterior", "Lateral", "Lingual"], correctAnswer: "Posterior" },
+                    { text: "The labial vestibule is influenced by which muscle?", options: ["Mentalis", "Orbicularis oris", "Incisivus", "All of the above"], correctAnswer: "All of the above" },
+                    { text: "The buccal notch in the mandibular denture is for the:", options: ["Labial frenum", "Buccal frenum", "Lingual frenum", "Mental nerve"], correctAnswer: "Buccal frenum" },
+                    { text: "The distobuccal corner of the mandibular denture is influenced by the ____ muscle.", options: ["Buccinator", "Masseter", "Mylohyoid", "Mentalis"], correctAnswer: "Masseter" },
+                    { text: "The masseter muscle area requires the denture flange to ____ sharply.", options: ["Diverge", "Converge", "Thicken", "Extend"], correctAnswer: "Converge" },
+                    { text: "The mucosal fold connecting the floor of the mouth to the tongue is the:", options: ["Labial frenum", "Lingual frenum", "Buccal frenum", "Median raphe"], correctAnswer: "Lingual frenum" },
+                    { text: "The space between the residual ridge and the tongue is the:", options: ["Buccal vestibule", "Alveololingual sulcus", "Labial vestibule", "Hamular notch"], correctAnswer: "Alveololingual sulcus" },
+                    { text: "The lingual pouch is also called the:", options: ["Sublingual gland area", "Retromylohyoid space", "Buccal shelf", "Masseter area"], correctAnswer: "Retromylohyoid space" },
+                    { text: "Over-extension in the retromylohyoid space causes:", options: ["Better retention", "Sore throat", "Numbness", "Lip biting"], correctAnswer: "Sore throat" },
+                    { text: "The retromylohyoid space is bounded medially by the:", options: ["Mandible", "Tongue", "Palatoglossus arch", "Mylohyoid muscle"], correctAnswer: "Tongue" },
+                    { text: "The sublingual salivary gland area has ____ mucosa.", options: ["Thick keratinized", "Thin sensitive", "Solid", "Fibrous"], correctAnswer: "Thin sensitive" },
+                    { text: "The lingual flange area extends from the lingual frenum to the:", options: ["Buccal frenum", "Retromylohyoid curtain", "External oblique ridge", "Mental foramen"], correctAnswer: "Retromylohyoid curtain" },
+                    { text: "The mylohyoid ridge requires relief if it is:", options: ["Rounded", "Sharp", "Deep", "Absent"], correctAnswer: "Sharp" },
+                    { text: "The retromolar pad acts as a ____ during function.", options: ["Sharp edge", "Shock absorber", "Dislodging force", "Secondary support"], correctAnswer: "Shock absorber" },
+                    { text: "The labial notch prevents ____ of the lower lip.", options: ["Numbness", "Ulceration or displacement", "Swelling", "Resorption"], correctAnswer: "Ulceration or displacement" },
+                    { text: "Proper extension into the retromylohyoid space provides a ____ seal.", options: ["Buccal", "Lingual", "Labial", "Anterior"], correctAnswer: "Lingual" },
+                    { text: "The external oblique ridge should be ____ by the denture.", options: ["Covered (not exceeded)", "Relieved", "Ignored", "Cut"], correctAnswer: "Covered (not exceeded)" },
+                    { text: "The mandibular landmark for locating the posterior occlusal plane is the:", options: ["Buccal shelf", "Retromolar pad", "Genial tubercles", "Mental foramen"], correctAnswer: "Retromolar pad" },
+                    { text: "The genioglossus muscle is related to which frenum?", options: ["Labial", "Buccal", "Lingual", "Pterygomandibular"], correctAnswer: "Lingual" }
+                ]
+            },
+            {
+                id: 5, title: "Lecture 5: Impression Trays", description: "Stock vs custom trays, spacer design, and materials like acrylic.",
+                questions: [
+                    { text: "An instrument used for carrying and supporting impression material is:", options: ["Articulator", "Impression Tray", "Special Tray", "Cast"], correctAnswer: "Impression Tray" },
+                    { text: "A 'Cast' is a ____ reproduction of the arch.", options: ["Negative", "Positive", "Temporary", "Primary"], correctAnswer: "Positive" },
+                    { text: "Which part is found in an upper tray but NOT in a lower tray?", options: ["Flange", "Handle", "Vault portion", "Floor"], correctAnswer: "Vault portion" },
+                    { text: "Trays used for making preliminary impressions are:", options: ["Special trays", "Stock trays", "Custom trays", "Record bases"], correctAnswer: "Stock trays" },
+                    { text: "A perforated stock tray is primarily used with:", options: ["Impression compound", "Alginate", "Plaster", "Wax"], correctAnswer: "Alginate" },
+                    { text: "Rim lock trays with a cooling system are used for:", options: ["Agar-agar", "Alginate", "Rubber base", "Shellac"], correctAnswer: "Agar-agar" },
+                    { text: "How much space (clearance) should be allowed between a stock tray and the tissues for hydrocolloids?", options: ["1 mm", "2 mm", "5 mm", "10 mm"], correctAnswer: "5 mm" },
+                    { text: "To adjust a metallic stock tray flange for a patient's individual requirement, we use:", options: ["Heating", "Bending with pliers", "Cutting with a saw", "Filling with stone"], correctAnswer: "Bending with pliers" },
+                    { text: "The handle of an edentulous tray is ____ to allow lip clearance.", options: ["Straight", "L-shaped", "T-shaped", "Circular"], correctAnswer: "L-shaped" },
+                    { text: "Custom trays are fabricated on:", options: ["Master cast", "Study cast (Preliminary cast)", "Patient's mouth directly", "Articulator"], correctAnswer: "Study cast (Preliminary cast)" },
+                    { text: "An advantage of custom trays is:", options: ["They use more material", "Less dimensional change", "They are ready-made", "Inaccurate fit"], correctAnswer: "Less dimensional change" },
+                    { text: "The 'Minimal Pressure' technique is indicated for:", options: ["Flabby ridges", "Ideal ridges", "Sharp ridges", "Flat ridges"], correctAnswer: "Ideal ridges" },
+                    { text: "A custom tray with a spacer is used in which technique?", options: ["Selective pressure", "Minimal pressure", "High pressure", "No pressure"], correctAnswer: "Minimal pressure" },
+                    { text: "A custom tray with a 'Window' is indicated for:", options: ["Ideal ridges", "Flabby and displaceable tissues", "Flat palates", "V-shaped palates"], correctAnswer: "Flabby and displaceable tissues" },
+                    { text: "The spacer on the preliminary cast should extend ____ short of the tray border.", options: ["0.5 mm", "1 mm", "2 mm", "5 mm"], correctAnswer: "2 mm" },
+                    { text: "The special tray itself should be ____ short of the mucosal reflection.", options: ["1 mm", "2 mm", "4 mm", "6 mm"], correctAnswer: "2 mm" },
+                    { text: "Which area is NOT covered by the wax spacer in a maxillary custom tray?", options: ["Alveolar ridge", "Rugae area", "Posterior palatal seal area", "Hard palate"], correctAnswer: "Posterior palatal seal area" },
+                    { text: "Shellac special trays are ____ materials.", options: ["Thermosetting", "Thermoplastic", "Light-cured", "Self-cured"], correctAnswer: "Thermoplastic" },
+                    { text: "A major disadvantage of shellac trays is:", options: ["Expensive", "Poor adaptation and low strength", "Difficult to make", "Too thick"], correctAnswer: "Poor adaptation and low strength" },
+                    { text: "Acrylic resin special trays should be used ____ after fabrication.", options: ["Immediately", "After 1 hour", "After 24 hours", "After 1 week"], correctAnswer: "After 24 hours" },
+                    { text: "The method where polymer powder is moistened by monomer liquid on the cast is:", options: ["Dough method", "Sprinkle-on method", "Vacuum formed", "Heat cured"], correctAnswer: "Sprinkle-on method" },
+                    { text: "In the 'Dough Method', the polymer to monomer ratio by volume is usually:", options: ["1:1", "2:1", "3:1", "5:1"], correctAnswer: "3:1" },
+                    { text: "The desired thickness of an acrylic resin tray sheet is:", options: ["0.5 mm", "1-1.5 mm", "2-3 mm", "5 mm"], correctAnswer: "2-3 mm" },
+                    { text: "A custom tray with relief is also known as a:", options: ["Minimal pressure tray", "Close-fitting tray", "Selective pressure tray", "Stock tray"], correctAnswer: "Close-fitting tray" },
+                    { text: "Vacuum formed trays are made of:", options: ["Acrylic resin", "Shellac", "Vinyl or polystyrene", "Plaster"], correctAnswer: "Vinyl or polystyrene" },
+                    { text: "Which material can be easily trimmed with acrylic burs?", options: ["Shellac", "Compound", "Acrylic resin", "Alginate"], correctAnswer: "Acrylic resin" },
+                    { text: "Preliminary impressions help examine all the following EXCEPT:", options: ["Ridge shape", "Inter-ridge space", "Final occlusion of the denture", "Relief areas"], correctAnswer: "Final occlusion of the denture" },
+                    { text: "Special trays provide an even space for impression material by using a:", options: ["Handle", "Spacer", "Border mold", "Casting ring"], correctAnswer: "Spacer" },
+                    { text: "Which tray is used for impressions in fixed prosthodontics (sections)?", options: ["Edentulous stock tray", "Sectional tray", "Special tray", "Custom tray with window"], correctAnswer: "Sectional tray" },
+                    { text: "One thickness of baseplate wax in 'Close-fitting' trays is placed over:", options: ["Primary stress areas", "Relief areas", "Borders only", "Handle area"], correctAnswer: "Relief areas" },
+                    { text: "Custom trays are more economical because they:", options: ["Last longer", "Require less impression material", "Are made of cheap plastic", "Are ready-made"], correctAnswer: "Require less impression material" },
+                    { text: "A tray requirement for preventing distortion is to be:", options: ["Flexible", "Strong and rigid", "Very thin", "Perforated only"], correctAnswer: "Strong and rigid" },
+                    { text: "Trays for partially edentulous patients have:", options: ["Only round floors", "Only flat floors", "Combination of round (edentulous) and flat (dentulous) floors", "No flanges"], correctAnswer: "Combination of round (edentulous) and flat (dentulous) floors" },
+                    { text: "Adjustment of a stock tray flange to fit a frenum is called:", options: ["Bending", "Cutting (notching)", "Building", "Casting"], correctAnswer: "Cutting (notching)" },
+                    { text: "The dough stage of acrylic resin is used in:", options: ["Sprinkle-on method", "Finger adapted method", "Vacuum forming", "Casting"], correctAnswer: "Finger adapted method" },
+                    { text: "Dimensional changes in auto-polymerizing resin trays happen due to:", options: ["Heat", "Monomer evaporation and polymerization", "Water absorption", "Light exposure"], correctAnswer: "Monomer evaporation and polymerization" },
+                    { text: "'Rim lock' trays have a cooling system specifically for:", options: ["Alginate", "Agar-agar (Reversible hydrocolloid)", "Zinc oxide eugenol", "Plaster"], correctAnswer: "Agar-agar (Reversible hydrocolloid)" },
+                    { text: "The special tray extension is 2 mm short of mucosal reflection to allow for:", options: ["Thick material", "Border molding", "Retention", "More teeth"], correctAnswer: "Border molding" },
+                    { text: "In the sprinkle-on method, the sequence of sprinkling is:", options: ["Crest first, then labial", "Labial, buccal, lingual, palatal, then crest", "Palatal only", "Any order"], correctAnswer: "Labial, buccal, lingual, palatal, then crest" },
+                    { text: "Which special tray is considered time-consuming to fabricate?", options: ["Shellac", "Auto polymerizing resin", "Vacuum formed", "Stock tray"], correctAnswer: "Auto polymerizing resin" }
+                ]
+            },
+            {
+                id: 6, title: "Lecture 6: Posterior Palatal Seal & Relief", description: "Retention principles, vibrating lines, and pressure relief techniques.",
+                questions: [
+                    { text: "The PPS is produced by displacing tissues covering the:", options: ["Hard palate", "Soft palate", "Alveolar ridge", "Buccal shelf"], correctAnswer: "Soft palate" },
+                    { text: "The primary purpose of the Posterior Palatal Seal (PPS) is:", options: ["Aesthetics", "Retention", "Support", "Comfort only"], correctAnswer: "Retention" },
+                    { text: "PPS reduces the gag reflex by:", options: ["Making the denture longer", "Decreasing awareness of the posterior border", "Thickening the border", "Moving the teeth forward"], correctAnswer: "Decreasing awareness of the posterior border" },
+                    { text: "Which landmark marks the junction between the hard and soft palates?", options: ["Anterior vibrating line", "Posterior vibrating line", "Hamular notch", "Fovea palatinae"], correctAnswer: "Anterior vibrating line" },
+                    { text: "The PPS area lies between the:", options: ["Rugae and tuberosity", "Anterior and posterior vibrating lines", "Hard palate and fovea", "Hamular notch and ridge crest"], correctAnswer: "Anterior and posterior vibrating lines" },
+                    { text: "To locate the 'Anterior Vibrating Line', the patient should say 'Ah' in:", options: ["A long continuous sound", "Short vigorous bursts", "A whisper", "A normal tone"], correctAnswer: "Short vigorous bursts" },
+                    { text: "The 'Posterior Vibrating Line' is at the junction between:", options: ["Hard and soft palate", "Slightly movable and movable soft palate", "Soft palate and pharynx", "Teeth and gums"], correctAnswer: "Slightly movable and movable soft palate" },
+                    { text: "The post-dam width at the midline is usually:", options: ["0.5 mm", "1 mm", "5-6 mm", "10 mm"], correctAnswer: "1 mm" },
+                    { text: "The post-dam width is widest (5-6 mm) at:", options: ["The midline", "The lateral sides (Cupid's bow area)", "The hamular notch", "The tuberosity"], correctAnswer: "The lateral sides (Cupid's bow area)" },
+                    { text: "The deepest point of the post-dam is located at ____ distance from the midline to hamular notch.", options: ["1/4", "1/3", "1/2", "3/4"], correctAnswer: "1/3" },
+                    { text: "Which technique uses zinc oxide-eugenol and head movement at 30°?", options: ["Conventional approach", "Fluid wax technique", "Arbitrary scraping", "Direct relief"], correctAnswer: "Fluid wax technique" },
+                    { text: "A disadvantage of the 'Conventional Approach' is:", options: ["Inaccurate", "Risk of tissue over-compression", "Not retentive", "Too fast"], correctAnswer: "Risk of tissue over-compression" },
+                    { text: "The least accurate method for PPS is:", options: ["Fluid wax", "Conventional approach", "Arbitrary scraping of master cast", "Functional impression"], correctAnswer: "Arbitrary scraping of master cast" },
+                    { text: "The 'Butterfly' shape of the PPS refers to its:", options: ["Length", "Depth", "Width", "Color"], correctAnswer: "Width" },
+                    { text: "The post-dam depth is shallowest at the:", options: ["Lateral areas", "Midline and hamular notches", "Alveolar ridge", "Tuberosity"], correctAnswer: "Midline and hamular notches" },
+                    { text: "Relief is defined as the reduction of pressure from:", options: ["Stress bearing areas", "Specific undesirable pressure areas", "The entire palate", "Artificial teeth"], correctAnswer: "Specific undesirable pressure areas" },
+                    { text: "Relief improves denture:", options: ["Esthetics", "Stability and comfort", "Weight", "Speed of fabrication"], correctAnswer: "Stability and comfort" },
+                    { text: "Which area requires relief to prevent a burning sensation?", options: ["Median palatine raphe", "Incisive papilla", "Rugae", "Buccal shelf"], correctAnswer: "Incisive papilla" },
+                    { text: "Which area requires relief to prevent midline fracture of the denture?", options: ["Tuberosity", "Median palatine raphe", "Hamular notch", "Fovea"], correctAnswer: "Median palatine raphe" },
+                    { text: "Automatic relief is achieved clinically through:", options: ["Grinding", "Selective pressure impression", "Scraping the cast", "Adding wax"], correctAnswer: "Selective pressure impression" },
+                    { text: "Scraping the master cast for PPS in the conventional approach is done at which stage?", options: ["Preliminary impression", "Final impression or Jaw relation/Try-in stages", "Delivery", "Follow-up"], correctAnswer: "Final impression or Jaw relation/Try-in stages" },
+                    { text: "The fluid wax technique allows for recording ____ movements.", options: ["Vertical only", "Functional soft palate", "Masticatory", "Tongue"], correctAnswer: "Functional soft palate" },
+                    { text: "The depth of the post-dam scrape at the median palatine raphe should be:", options: ["0.1 mm", "0.5–1 mm", "3 mm", "5 mm"], correctAnswer: "0.5–1 mm" },
+                    { text: "The depth of the post-dam scrape laterally (at 1/3 distance) should be:", options: ["0.5 mm", "1–1.5 mm", "5 mm", "10 mm"], correctAnswer: "1–1.5 mm" },
+                    { text: "'Post-dam' is another name for:", options: ["Relief", "Posterior Palatal Seal", "Tuberosity", "Special tray"], correctAnswer: "Posterior Palatal Seal" },
+                    { text: "Which PPS technique is considered a 'Physiologic technique'?", options: ["Arbitrary scraping", "Fluid wax technique", "Conventional scraping", "Direct relief"], correctAnswer: "Fluid wax technique" },
+                    { text: "One advantage of the Fluid Wax technique is:", options: ["Handling is very easy", "Less chance of tissue overcompression", "Saves time", "Does not require special wax"], correctAnswer: "Less chance of tissue overcompression" },
+                    { text: "In the Conventional Approach, self-cure resin added to the trial base should be kept for:", options: ["1 minute", "5 minutes", "20–30 minutes", "24 hours"], correctAnswer: "20–30 minutes" },
+                    { text: "Which line is marked with an indelible pencil to guide the posterior border?", options: ["Anterior vibrating line", "Posterior vibrating line", "Median raphe", "Camper's line"], correctAnswer: "Posterior vibrating line" },
+                    { text: "Relief of the 'Mylohyoid Ridge' in the mandible is done if it is:", options: ["Rounded", "Sharp after resorption", "Absent", "Deep in the sulcus"], correctAnswer: "Sharp after resorption" },
+                    { text: "Relief areas in the mandible include the Mental Foramen when:", options: ["Teeth are present", "Severe ridge resorption occurs", "The patient is young", "The foramen is deep"], correctAnswer: "Severe ridge resorption occurs" },
+                    { text: "Scraping the final impression to create relief is a ____ method.", options: ["Clinical", "Laboratory", "Functional", "Diagnostic"], correctAnswer: "Laboratory" },
+                    { text: "The shape and depth of relief depend on the:", options: ["Color of the ridge", "Shape and extent of hard/sensitive areas", "Size of the tray", "Material used for impression"], correctAnswer: "Shape and extent of hard/sensitive areas" },
+                    { text: "Relief should NOT have a sharp outline to prevent:", options: ["Stone breakage", "Epithelial irritation", "Excess wax", "Retention loss"], correctAnswer: "Epithelial irritation" },
+                    { text: "The PPS extends laterally to the:", options: ["Alveolar ridge", "Hamular notch", "Buccal frenum", "Philtrum"], correctAnswer: "Hamular notch" },
+                    { text: "The 'Ah' sound used for the posterior vibrating line is:", options: ["Short and vigorous", "Normal (not exaggerated)", "Not used", "Loud"], correctAnswer: "Normal (not exaggerated)" },
+                    { text: "The PPS compensates for polymerization shrinkage of:", options: ["Alginate", "Acrylic resin", "Plaster", "Stone"], correctAnswer: "Acrylic resin" },
+                    { text: "A 'Relieved Area' on the denture is an area that is:", options: ["Thicker", "Reduced (thinned)", "Sharpened", "Perforated"], correctAnswer: "Reduced (thinned)" },
+                    { text: "The posterior palatal seal area is soft tissue along the junction of:", options: ["Lip and gum", "Hard and soft palates", "Tongue and floor of mouth", "Cheek and ridge"], correctAnswer: "Hard and soft palates" },
+                    { text: "Wait time before removing the fluid wax impression from the mouth is:", options: ["10 seconds", "1 minute", "4–6 minutes", "30 minutes"], correctAnswer: "4–6 minutes" }
+                ]
+            },
+            {
+                id: 7, title: "Lecture 7: Boxing-in Final Impression", description: "Building vertical walls, bead wax, and master cast preservation.",
+                questions: [
+                    { text: "Boxing-in is the process of building vertical walls around the:", options: ["Patient's face", "Final impression", "Preliminary cast", "Articulator"], correctAnswer: "Final impression" },
+                    { text: "One main purpose of boxing is to produce a container for:", options: ["Saliva", "Pouring the stone", "Storing teeth", "Mixing monomer"], correctAnswer: "Pouring the stone" },
+                    { text: "Boxing helps preserve the impression's:", options: ["Color", "Landmarks", "Weight", "Smell"], correctAnswer: "Landmarks" },
+                    { text: "The wax boxing method is suitable for ____ impressions.", options: ["Alginate", "Zinc oxide or plaster", "Agar-agar", "Only wax"], correctAnswer: "Zinc oxide or plaster" },
+                    { text: "A rope of 'Bead Wax' is usually ____ thick.", options: ["1 mm", "3 mm", "10 mm", "20 mm"], correctAnswer: "3 mm" },
+                    { text: "The bead wax should be placed ____ away from the impression border.", options: ["0.5 mm", "1 mm", "3 mm", "10 mm"], correctAnswer: "3 mm" },
+                    { text: "In the lower impression, bead wax must include the ____ side.", options: ["Only buccal", "Lingual", "Only labial", "No side"], correctAnswer: "Lingual" },
+                    { text: "To fill the tongue space in a lower impression, we use:", options: ["More stone", "Base plate wax piece", "Cotton", "Alginate"], correctAnswer: "Base plate wax piece" },
+                    { text: "The 'Plaster Base' for boxing is made by placing plaster on a:", options: ["Vibrator", "Glass slab", "Articulator", "Patient's tray"], correctAnswer: "Glass slab" },
+                    { text: "The boxing wax strip should extend ____ above the impression's highest point.", options: ["2 mm", "5 mm", "13 mm", "50 mm"], correctAnswer: "13 mm" },
+                    { text: "The wax strip and bead wax are removed ____ the stone sets.", options: ["Before", "After", "While", "Never"], correctAnswer: "After" },
+                    { text: "The 'Plaster and Pumice' method is primarily used for ____ impressions.", options: ["Alginate", "Rubber base", "Compound", "Plaster only"], correctAnswer: "Plaster only" },
+                    { text: "In the clay boxing method, the impression is placed on a:", options: ["Glass slab", "Clay base", "Stone base", "Wax base"], correctAnswer: "Clay base" },
+                    { text: "Clay is molded ____ from the impression border.", options: ["1 mm", "3 mm", "10 mm", "13 mm"], correctAnswer: "3 mm" },
+                    { text: "An advantage of boxing is that it increases the ____ of the cast.", options: ["Solubility", "Strength", "Transparency", "Flexibility"], correctAnswer: "Strength" },
+                    { text: "Boxing allows for accurate judging of the cast:", options: ["Color", "Thickness", "Age", "Density"], correctAnswer: "Thickness" },
+                    { text: "Which method is considered economical?", options: ["Not boxing", "Boxing", "Hand-pouring", "Free-hand trimming"], correctAnswer: "Boxing" },
+                    { text: "The 'Bead Wax' should be ____ to the impression border.", options: ["Perpendicular", "Parallel", "At a 45° angle", "Underneath"], correctAnswer: "Parallel" },
+                    { text: "'Luting' the ends of the boxing wax means:", options: ["Cutting them", "Sealing them together", "Breaking them", "Washing them"], correctAnswer: "Sealing them together" },
+                    { text: "Plaster and pumice mix should be trimmed to the ____ of the wax bead.", options: ["Height", "Thickness (3 mm)", "Length", "Color"], correctAnswer: "Thickness (3 mm)" },
+                    { text: "Boxing preserves the full ____ of the impression.", options: ["Height", "Width", "Length", "Volume"], correctAnswer: "Width" },
+                    { text: "The stone is vibrated into the boxing to remove:", options: ["Excess stone", "Air bubbles", "Wax", "Clay"], correctAnswer: "Air bubbles" },
+                    { text: "Separating the cast from the impression happens after:", options: ["5 minutes", "The stone sets", "Boiling", "Trimming"], correctAnswer: "The stone sets" },
+                    { text: "In the wax method, the impression is seated into plaster with its tissue surface:", options: ["Facing down", "Facing up", "Facing the wall", "Vertically"], correctAnswer: "Facing up" },
+                    { text: "The plaster base ensures that the sides of the cast will be:", options: ["Slanted", "Vertical", "Horizontal", "Curved"], correctAnswer: "Vertical" },
+                    { text: "Which material provides a 'Firm attachment' for boxing wax in the pumice method?", options: ["Water", "Plaster-pumice mix", "Alginate", "Oil"], correctAnswer: "Plaster-pumice mix" },
+                    { text: "'Stone' refers to the ____ material poured into the boxed impression.", options: ["Impression", "Cast", "Wax", "Resin"], correctAnswer: "Stone" },
+                    { text: "Boxing-in is a stage between final impression and:", options: ["Special tray construction", "Master cast production", "Setting teeth", "Delivery"], correctAnswer: "Master cast production" },
+                    { text: "Failure to box properly can lead to loss of ____ landmarks.", options: ["Preliminary", "Peripheral (border)", "Occlusal", "Facial"], correctAnswer: "Peripheral (border)" },
+                    { text: "Wax used for 'Beading' is often called:", options: ["Sticky wax", "Utility or Bead wax", "Casting wax", "Inlay wax"], correctAnswer: "Utility or Bead wax" },
+                    { text: "The 'Strip of Boxing Wax' forms the ____ of the container.", options: ["Floor", "Vertical walls", "Lid", "Handle"], correctAnswer: "Vertical walls" },
+                    { text: "The 'Land area' of a cast is preserved by:", options: ["Trimming", "Boxing", "Sanding", "Polishing"], correctAnswer: "Boxing" },
+                    { text: "Boxing wax is usually supplied as:", options: ["Liquid", "Long strips or sheets", "Powder", "Pellets"], correctAnswer: "Long strips or sheets" },
+                    { text: "Boxing is NOT typically done with ____ impressions due to their flexibility.", options: ["Zinc oxide", "Alginate", "Plaster", "Compound"], correctAnswer: "Alginate" },
+                    { text: "The 'Glass Slab' provides a ____ surface for the boxing base.", options: ["Rough", "Flat and smooth", "Porous", "Curved"], correctAnswer: "Flat and smooth" },
+                    { text: "Separating the clay from the cast is:", options: ["Difficult", "Easy", "Impossible", "Requires boiling"], correctAnswer: "Easy" },
+                    { text: "The thickness of the cast base produced by boxing is typically:", options: ["1 mm", "10–15 mm", "50 mm", "100 mm"], correctAnswer: "10–15 mm" },
+                    { text: "'Stone' is preferred over 'Plaster' for the master cast because it is:", options: ["Cheaper", "Stronger and harder", "Softer", "Faster to set"], correctAnswer: "Stronger and harder" },
+                    { text: "The bead wax prevents the stone from ____ the impression borders.", options: ["Reaching", "Flowing over (losing)", "Touching", "Coloring"], correctAnswer: "Flowing over (losing)" },
+                    { text: "Final impressions are boxed to produce the ____ cast.", options: ["Study", "Master", "Refractory", "Diagnostic"], correctAnswer: "Master" }
+                ]
+            },
+            {
+                id: 8, title: "Lecture 8: Record Blocks", description: "Record bases, occlusion rims, and maxillary-mandibular relations.",
+                questions: [
+                    { text: "A record block is used for recording ____ relations.", options: ["Only vertical", "Maxillo-mandibular", "Only horizontal", "Aesthetic"], correctAnswer: "Maxillo-mandibular" },
+                    { text: "The components of a record block are:", options: ["Tray and material", "Record base and occlusion rim", "Cast and articulator", "Teeth and wax"], correctAnswer: "Record base and occlusion rim" },
+                    { text: "Record bases support the ____ during jaw relation records.", options: ["Tongue", "Occlusion rim", "Lips", "Articulator"], correctAnswer: "Occlusion rim" },
+                    { text: "A record base should be ____ to avoid inaccurate jaw records.", options: ["Flexible", "Stable and rigid", "Very heavy", "Small"], correctAnswer: "Stable and rigid" },
+                    { text: "Temporary recording bases are ____ after arrangement of teeth.", options: ["Kept", "Discarded", "Polished", "Glued"], correctAnswer: "Discarded" },
+                    { text: "Shellac baseplates are softened over a:", options: ["Water bath", "Flame", "Lamp", "Oven"], correctAnswer: "Flame" },
+                    { text: "A disadvantage of Shellac bases is that they tend to ____ with temperature changes.", options: ["Get stronger", "Distort (warp)", "Melt", "Disappear"], correctAnswer: "Distort (warp)" },
+                    { text: "'Cold-curing acrylic resin' is another name for:", options: ["Light-cured resin", "Auto polymerizing resin", "Heat-cured resin", "Shellac"], correctAnswer: "Auto polymerizing resin" },
+                    { text: "The 'Sprinkle-on' method sequence includes sprinkling polymer then moistening with:", options: ["Water", "Monomer", "Alcohol", "Oil"], correctAnswer: "Monomer" },
+                    { text: "The thickness of a resin record base should be:", options: ["0.5 mm", "2–3 mm", "10 mm", "20 mm"], correctAnswer: "2–3 mm" },
+                    { text: "Residual monomer in self-cure resin can cause ____ to oral tissues.", options: ["Better healing", "Irritation", "Numbness", "No effect"], correctAnswer: "Irritation" },
+                    { text: "The 'Finger adapted dough method' is ____ than the sprinkle-on method.", options: ["Slower", "Faster", "More accurate", "More expensive"], correctAnswer: "Faster" },
+                    { text: "Light-cured record bases are cured in a chamber for ____ (total).", options: ["1 minute", "8 minutes (2 + 6)", "1 hour", "24 hours"], correctAnswer: "8 minutes (2 + 6)" },
+                    { text: "Thermoplastic resins for bases are adapted using a ____ machine.", options: ["Casting", "Vacuum forming", "Milling", "Polishing"], correctAnswer: "Vacuum forming" },
+                    { text: "Which record base becomes a permanent part of the finished denture?", options: ["Shellac", "Processed heat-cured acrylic", "Cold-curing resin", "Wax"], correctAnswer: "Processed heat-cured acrylic" },
+                    { text: "Cast alloy denture bases can be made from:", options: ["Aluminum", "Chrome-Cobalt or Gold alloy", "Copper", "Lead"], correctAnswer: "Chrome-Cobalt or Gold alloy" },
+                    { text: "An advantage of metallic (alloy) bases is:", options: ["Cheap", "Thermal conductivity", "Easy to reline", "Lightweight"], correctAnswer: "Thermal conductivity" },
+                    { text: "Occlusion rims are ____ shaped.", options: ["Circular", "Horse-shoe", "Square", "Triangular"], correctAnswer: "Horse-shoe" },
+                    { text: "Occlusion rims help determine the ____ support.", options: ["Tongue", "Lip and cheek", "Eye", "Ear"], correctAnswer: "Lip and cheek" },
+                    { text: "The height of the anterior MAXILLARY rim from the mucobuccal fold is:", options: ["10 mm", "22 mm", "18 mm", "5 mm"], correctAnswer: "22 mm" },
+                    { text: "The height of the anterior MANDIBULAR rim from the mucobuccal fold is:", options: ["10 mm", "18 mm", "22 mm", "30 mm"], correctAnswer: "18 mm" },
+                    { text: "The upper occlusion rim terminates at the anterior aspect of the:", options: ["Hamular notch", "Maxillary tuberosity", "Incisive papilla", "Midline"], correctAnswer: "Maxillary tuberosity" },
+                    { text: "The lower occlusion rim terminates anterior to the:", options: ["Retromolar pad", "Mental foramen", "Lingual frenum", "Canine"], correctAnswer: "Retromolar pad" },
+                    { text: "The posterior edge of the rim is cut at a ____ degree angle.", options: ["10", "30", "90", "180"], correctAnswer: "30" },
+                    { text: "The most common material for making occlusion rims is:", options: ["Plaster", "Base plate wax", "Compound", "Metal"], correctAnswer: "Base plate wax" },
+                    { text: "'Composition' (compound) rims are advantageous because they do NOT:", options: ["Melt", "Distort under pressure", "Cost much", "Require trimming"], correctAnswer: "Distort under pressure" },
+                    { text: "Plaster and pumice rims are used for ____ recording of jaw movements.", options: ["Static", "Functional (grinding)", "Aesthetic", "Digital"], correctAnswer: "Functional (grinding)" },
+                    { text: "Record bases must be free of ____ for patient comfort.", options: ["Color", "Voids or projections", "Wax", "Resin"], correctAnswer: "Voids or projections" },
+                    { text: "Failure to fit record bases accurately leads to errors in:", options: ["Tooth color", "Jaw relationship records", "Patient's age", "Denture weight"], correctAnswer: "Jaw relationship records" },
+                    { text: "In the 'Dough Method', the polymer to monomer ratio is usually:", options: ["1:1", "3:1", "10:1", "1:3"], correctAnswer: "3:1" },
+                    { text: "Undercuts on the master cast are ____ before making temporary bases.", options: ["Enlarged", "Blocked-out with wax", "Removed with a drill", "Left alone"], correctAnswer: "Blocked-out with wax" },
+                    { text: "A thin layer of ____ is applied to the cast as a separating medium for resin.", options: ["Water", "Petrolatum (Vaseline)", "Glue", "Acid"], correctAnswer: "Petrolatum (Vaseline)" },
+                    { text: "Which record base is considered 'Brittle' and produces fine particles when grinding?", options: ["Shellac", "Light-cured resin", "Metal", "Cold-cure resin"], correctAnswer: "Shellac" },
+                    { text: "The master cast is ____ when recovering a permanent processed resin base.", options: ["Saved", "Destroyed", "Duplicated", "Not used"], correctAnswer: "Destroyed" },
+                    { text: "Metallic bases are difficult to ____ compared to acrylic bases.", options: ["Clean", "Reline", "Wear", "Polish"], correctAnswer: "Reline" },
+                    { text: "Occlusion rims follow the ____ form of the arch.", options: ["Straight", "Arch form", "Vertical", "Any"], correctAnswer: "Arch form" },
+                    { text: "The vertical dimension of occlusion (VDO) is determined using:", options: ["Special tray", "Occlusion rims", "Alginate", "Only the cast"], correctAnswer: "Occlusion rims" },
+                    { text: "Which material for rims takes a long time to cut and trim?", options: ["Wax", "Composition (Compound)", "Plaster", "Alginate"], correctAnswer: "Composition (Compound)" },
+                    { text: "Record blocks are used during the ____ stage in the clinic.", options: ["Preliminary impression", "Try-in and Jaw relation", "Polishing", "Finishing"], correctAnswer: "Try-in and Jaw relation" },
+                    { text: "'Blocking out undercuts' ensures that the record base can be:", options: ["Glued to the cast", "Removed without breaking the cast", "Made thicker", "Processed faster"], correctAnswer: "Removed without breaking the cast" }
+                ]
+            },
+            {
+                id: 9, title: "Lecture 9: Selection of Teeth", description: "SPA concept, anterior aesthetics, and posterior cusp choices.",
+                questions: [
+                    { text: "Selection of anterior teeth is based on all EXCEPT:", options: ["Shape (Form)", "Size", "Cusp angle", "Shade"], correctAnswer: "Cusp angle" },
+                    { text: "The shape of anterior teeth should generally match the shape of the:", options: ["Ear", "Face", "Nose", "Tongue"], correctAnswer: "Face" },
+                    { text: "According to face forms, teeth can be Square, Ovoid, or:", options: ["Triangular", "Tapering", "Circular", "Rectangular"], correctAnswer: "Tapering" },
+                    { text: "The Dentogenic Concept (SPA) stands for:", options: ["Size, Position, Age", "Sex, Personality, Age", "Shape, Profile, Anatomy", "Shade, Polish, Acrylic"], correctAnswer: "Sex, Personality, Age" },
+                    { text: "Female patients are often suited with ____ teeth.", options: ["Square", "Ovoid or tapering", "Sharp-edged", "Large"], correctAnswer: "Ovoid or tapering" },
+                    { text: "'Vigorous' personality types usually require ____ teeth.", options: ["Ovoid", "Square with flat incisal edges", "Small", "Light-colored"], correctAnswer: "Square with flat incisal edges" },
+                    { text: "As a person ages, their teeth look ____ due to wear.", options: ["Longer", "Squarer", "Whiter", "Pointier"], correctAnswer: "Squarer" },
+                    { text: "Maxillary anterior total width can be estimated as Bizygomatic width divided by:", options: ["2", "3.3", "16", "10"], correctAnswer: "3.3" },
+                    { text: "The width of the maxillary CENTRAL incisor is estimated as Bizygomatic width divided by:", options: ["3.3", "16", "30", "5"], correctAnswer: "16" },
+                    { text: "The distance between mouth corners often equals the width of:", options: ["Two central incisors", "Six maxillary anterior teeth", "Only canines", "The whole arch"], correctAnswer: "Six maxillary anterior teeth" },
+                    { text: "The width of the nose often corresponds to the ____ distance.", options: ["Inter-pupillary", "Canine-to-canine", "Central-to-central", "Molar-to-molar"], correctAnswer: "Canine-to-canine" },
+                    { text: "The width of the philtrum corresponds to the width of the:", options: ["Canines", "Central incisors", "Lateral incisors", "Molars"], correctAnswer: "Central incisors" },
+                    { text: "Class III relationships often require ____ mandibular anterior teeth.", options: ["Smaller", "Larger", "No", "Pointy"], correctAnswer: "Larger" },
+                    { text: "The length of the maxillary central incisor is approximately Face Length divided by:", options: ["3.3", "16", "5", "20"], correctAnswer: "16" },
+                    { text: "Relaxed female patients usually display ____ of the upper teeth.", options: ["0 mm", "2 mm", "5 mm", "10 mm"], correctAnswer: "2 mm" },
+                    { text: "Relaxed male patients usually display ____ of the upper teeth.", options: ["1 mm", "3 mm", "6 mm", "0 mm"], correctAnswer: "0 mm" },
+                    { text: "Which teeth are usually the 'Darkest' in the mouth?", options: ["Central incisors", "Canines", "Lateral incisors", "First premolars"], correctAnswer: "Canines" },
+                    { text: "The lightest teeth in the mouth are usually the:", options: ["Canines", "Central incisors", "Molars", "Second premolars"], correctAnswer: "Central incisors" },
+                    { text: "Anatomic posterior teeth have a cusp angle of:", options: ["0°", "30°–35°", "10°", "90°"], correctAnswer: "30°–35°" },
+                    { text: "Non-anatomic teeth are also called ____ teeth.", options: ["Sharp", "Flat (0°)", "Aesthetic", "Efficient"], correctAnswer: "Flat (0°)" },
+                    { text: "An advantage of Anatomic teeth is:", options: ["Less horizontal force", "Good masticatory efficiency", "Easy setup", "No cusp locking"], correctAnswer: "Good masticatory efficiency" },
+                    { text: "A disadvantage of Anatomic teeth is:", options: ["Poor esthetics", "More horizontal forces leading to ridge resorption", "Low efficiency", "Hard to grind"], correctAnswer: "More horizontal forces leading to ridge resorption" },
+                    { text: "Non-anatomic teeth are indicated for patients with:", options: ["High well-rounded ridges", "Atrophic or flat ridges", "Young age", "Class I relation only"], correctAnswer: "Atrophic or flat ridges" },
+                    { text: "Posterior tooth length depends on the available:", options: ["Tongue space", "Inter-arch space", "Lip length", "Cheek thickness"], correctAnswer: "Inter-arch space" },
+                    { text: "The maxillary posterior width is measured from distal of canine to:", options: ["Incisive papilla", "Anterior to the tuberosity", "Midline", "Hamular notch"], correctAnswer: "Anterior to the tuberosity" },
+                    { text: "The occlusal table of artificial posterior teeth should be ____ than natural teeth.", options: ["Larger", "Smaller", "The same", "Wider"], correctAnswer: "Smaller" },
+                    { text: "Posterior teeth shade should be ____ than the canines.", options: ["Lighter", "One-two shades darker", "Much whiter", "Pink"], correctAnswer: "One-two shades darker" },
+                    { text: "Acrylic denture teeth ____ to the denture base.", options: ["Bond mechanically", "Bond chemically", "Do not bond", "Are screwed"], correctAnswer: "Bond chemically" },
+                    { text: "Porcelain teeth are superior to acrylic in terms of:", options: ["Ease of grinding", "Wear resistance", "Bonding to base", "Clicking sound"], correctAnswer: "Wear resistance" },
+                    { text: "Porcelain teeth produce a ____ sound during chewing.", options: ["Muffled", "Clicking", "No", "Squeaking"], correctAnswer: "Clicking" },
+                    { text: "Porcelain teeth bond to the denture base:", options: ["Chemically", "Mechanically (using pins/diatorics)", "By glue", "Not at all"], correctAnswer: "Mechanically (using pins/diatorics)" },
+                    { text: "Acrylic teeth are indicated when opposing:", options: ["Porcelain teeth", "Natural teeth", "Metal crowns", "Nothing"], correctAnswer: "Natural teeth" },
+                    { text: "The cervical third of a natural tooth is ____ than the incisal edge.", options: ["Lighter", "Darker", "More translucent", "Blue"], correctAnswer: "Darker" },
+                    { text: "'Balanced occlusion' is easier to achieve with ____ teeth.", options: ["Non-anatomic", "Anatomic", "Sharp", "Natural"], correctAnswer: "Anatomic" },
+                    { text: "The facial profile is checked to determine the ____ of anterior teeth.", options: ["Width", "Labial contour (convexity/straightness)", "Color", "Material"], correctAnswer: "Labial contour (convexity/straightness)" },
+                    { text: "Which teeth are more uniform in color?", options: ["Anteriors", "Posteriors", "Canines", "Centrals"], correctAnswer: "Posteriors" },
+                    { text: "High well-rounded ridges are ideal for ____ teeth.", options: ["Flat", "Anatomic", "Small", "Plastic only"], correctAnswer: "Anatomic" },
+                    { text: "“Flabby ridges” are an indication for ____ teeth.", options: ["Anatomic", "Non-anatomic (Flat)", "Porcelain", "Long"], correctAnswer: "Non-anatomic (Flat)" },
+                    { text: "The width of the maxillary central incisors can be guided by the width of the:", options: ["Philtrum", "Tongue", "Ear", "Eye"], correctAnswer: "Philtrum" },
+                    { text: "Selection of artificial teeth is a ____ procedure.", options: ["Laboratory only", "Clinical and Laboratory (collaborative)", "Surgical", "Digital only"], correctAnswer: "Clinical and Laboratory (collaborative)" }
+                ]
+            },
+            {
+                id: 10, title: "Lecture 10: Dental Articulators", description: "Mechanical simulation, Bonwill triangle, and Arcon vs Non-Arcon.",
+                questions: [
+                    { text: "A mechanical device that represents the TMJs and jaw members is an:", options: ["Impression Tray", "Articulator", "Facebow", "Parallelometer"], correctAnswer: "Articulator" },
+                    { text: "According to the GPT definition, an articulator simulates jaw movements by attaching:", options: ["Natural teeth", "Maxillary and mandibular casts", "Special trays", "Alginate impressions"], correctAnswer: "Maxillary and mandibular casts" },
+                    { text: "Which of the following is NOT a use of an articulator?", options: ["Arrange artificial teeth", "Diagnose patient's occlusion", "Take a final impression", "Correct occlusal disharmony after processing"], correctAnswer: "Take a final impression" },
+                    { text: "An advantage of using an articulator is the ability to view occlusion from the ____ side.", options: ["Labial", "Buccal", "Lingual", "Occlusal"], correctAnswer: "Lingual" },
+                    { text: "Articulators eliminate interference from which oral factor?", options: ["Tongue and Cheeks", "Saliva", "Tissue resiliency", "All of the above"], correctAnswer: "All of the above" },
+                    { text: "The part of the articulator that provides a positive anterior vertical stop is the:", options: ["Condylar guidance", "Incisal pin", "Upper member", "Mounting ring"], correctAnswer: "Incisal pin" },
+                    { text: "A limitation of metal articulators is that they may show:", options: ["Tooling or fatigue errors", "Better retention", "Color changes", "No movement"], correctAnswer: "Tooling or fatigue errors" },
+                    { text: "'Simple Hinge' articulators allow which movement only?", options: ["Lateral", "Protrusive", "Opening and closing", "Bennett movement"], correctAnswer: "Opening and closing" },
+                    { text: "Which articulator does NOT represent the TMJs?", options: ["Semi-adjustable", "Simple Hinge (Plane line)", "Mean value", "Fully adjustable"], correctAnswer: "Simple Hinge (Plane line)" },
+                    { text: "In 'Fixed/Mean Value' articulators, the horizontal condylar angle is fixed at:", options: ["0°", "30–40°", "10°", "75°"], correctAnswer: "30–40°" },
+                    { text: "In 'Mean Value' articulators, the incisal table is usually fixed at:", options: ["0°", "5–10°", "30°", "45°"], correctAnswer: "5–10°" },
+                    { text: "The TMJ-like joints in a Mean Value articulator are usually ____ apart.", options: ["50 mm", "110 mm", "200 mm", "10 mm"], correctAnswer: "110 mm" },
+                    { text: "Bonwill showed that the distance between condyles and lower central incisors forms a:", options: ["2-inch square", "4-inch equilateral triangle", "6-inch circle", "10-inch rectangle"], correctAnswer: "4-inch equilateral triangle" },
+                    { text: "The 'Anterior pointer' on the incisal pin helps position the occlusion rim according to the:", options: ["Facebow", "Bonwill triangle", "Hanau formula", "Pouch"], correctAnswer: "Bonwill triangle" },
+                    { text: "In most condylar-path articulators, the ____ member moves while the other stays fixed.", options: ["Lower", "Upper", "Right", "Left"], correctAnswer: "Upper" },
+                    { text: "'Semi-adjustable' articulators adjust the horizontal condylar path using a:", options: ["Centric record", "Protrusive record", "Lateral record", "Facebow only"], correctAnswer: "Protrusive record" },
+                    { text: "The Hanau Formula for calculating the lateral path angle is:", options: ["L = H / 2 + 5", "L = H / 8 + 12", "L = H + 20", "L = H / 4"], correctAnswer: "L = H / 8 + 12" },
+                    { text: "Semi-adjustable articulators can be of two types: Arcon or:", options: ["Simple", "Non-Arcon", "Fully fixed", "Hinge"], correctAnswer: "Non-Arcon" },
+                    { text: "'Arcon' articulators mimic human anatomy because the condyles are on the:", options: ["Upper member", "Lower member", "Incisal table", "Side"], correctAnswer: "Lower member" },
+                    { text: "'Fully-adjustable' articulators require which records to adjust lateral condylar paths?", options: ["Only centric", "Actual patient records (R/L lateral)", "Only Hanau formula", "Only facebow"], correctAnswer: "Actual patient records (R/L lateral)" },
+                    { text: "Which articulator simulates 'True Bennett movement'?", options: ["Simple Hinge", "Mean Value", "Fully-adjustable", "Semi-adjustable (some lack it)"], correctAnswer: "Fully-adjustable" },
+                    { text: "A major disadvantage of Fully-adjustable articulators is:", options: ["They are too small", "Require many records, increasing error risk", "They are fixed", "No incisal pin"], correctAnswer: "Require many records, increasing error risk" },
+                    { text: "The Inter-condylar distance is 'Fixed' in which articulator?", options: ["Simple Hinge and Mean Value", "Semi-adjustable", "Fully-adjustable", "All articulators"], correctAnswer: "Simple Hinge and Mean Value" },
+                    { text: "The Face-bow transfer is 'Required' for:", options: ["Simple Hinge", "Semi-adjustable and Fully-adjustable", "Mean value (uses Bonwill)", "No articulator"], correctAnswer: "Semi-adjustable and Fully-adjustable" },
+                    { text: "The component that represents the upper jaw of the patient is the:", options: ["Incisal table", "Upper member", "Lower member", "Condylar guide"], correctAnswer: "Upper member" },
+                    { text: "Incisal guidance is 'Adjustable' in:", options: ["Simple hinge", "Fully adjustable and some Semi-adjustable", "Mean value", "Only facebows"], correctAnswer: "Fully adjustable and some Semi-adjustable" },
+                    { text: "Horizontal condylar angle (H) is 'Fixed' at 30° in:", options: ["Simple hinge", "Mean value articulator", "Semi-adjustable", "Fully-adjustable"], correctAnswer: "Mean value articulator" },
+                    { text: "Which articulator is typically 'Sufficient' for most complete denture work?", options: ["Simple Hinge", "Semi-adjustable", "Fully-adjustable", "Mean value only"], correctAnswer: "Semi-adjustable" },
+                    { text: "Articulators must be made of ____ materials to maintain accuracy.", options: ["Flexible", "Rigid and non-corrosive", "Plastic only", "Wooden"], correctAnswer: "Rigid and non-corrosive" },
+                    { text: "Smooth motion with 'Zero friction' is a requirement for:", options: ["Trays", "Articulators", "Casts", "Teeth"], correctAnswer: "Articulators" },
+                    { text: "The 'Condylar guidance' simulates the:", options: ["Teeth", "Temporomandibular joints (TMJs)", "Lips", "Tongue"], correctAnswer: "Temporomandibular joints (TMJs)" },
+                    { text: "The 'Incisal guide table' influences the ____ movement.", options: ["Posterior", "Anterior", "Superior", "Distal"], correctAnswer: "Anterior" },
+                    { text: "The 'Incisal pin' helps maintain the ____ dimension.", options: ["Horizontal", "Vertical", "Lateral", "Depth"], correctAnswer: "Vertical" },
+                    { text: "Errors in jaw-relation procedures are ____ in denture occlusion on the articulator.", options: ["Corrected", "Reproduced", "Hidden", "Multiplied"], correctAnswer: "Reproduced" },
+                    { text: "The device used to transfer the relationship of the maxilla to the articulator is the:", options: ["Special tray", "Face-bow", "Occlusion rim", "Stone cast"], correctAnswer: "Face-bow" },
+                    { text: "The distance between the joints in a mean value articulator is usually:", options: ["10 mm", "110 mm", "150 mm", "50 mm"], correctAnswer: "110 mm" },
+                    { text: "Semi-adjustable articulators use the Hanau Formula to calculate the ____ angle.", options: ["Vertical", "Lateral condylar", "Protrusive", "Incisal"], correctAnswer: "Lateral condylar" },
+                    { text: "The 'Rear screw' is found in which articulator?", options: ["Semi-adjustable", "Simple Hinge", "Fully-adjustable", "Arcon"], correctAnswer: "Simple Hinge" },
+                    { text: "The most accurate articulator for simulating individual mandibular movement is:", options: ["Simple hinge", "Mean value", "Fully-adjustable", "Semi-adjustable"], correctAnswer: "Fully-adjustable" },
+                    { text: "Mounting dentures after processing helps correct occlusal disharmony caused by:", options: ["Patient movement", "Processing changes (polymerization)", "Tray errors", "Impression material"], correctAnswer: "Processing changes (polymerization)" }
+                ]
+            },
+            {
+                id: 11, title: "Lecture 11: Teeth Arrangement", description: "Bone loss compensation, neutral zone, and balanced occlusion goals.",
+                questions: [
+                    { text: "Bone loss in the maxilla occurs:", options: ["Only vertically", "Vertically, labially, and buccally", "Vertically and lingually", "Only buccally"], correctAnswer: "Vertically, labially, and buccally" },
+                    { text: "Bone loss in the mandible occurs:", options: ["Vertically and buccally", "Vertically and lingually", "Only labially", "It does not occur"], correctAnswer: "Vertically and lingually" },
+                    { text: "To compensate for bone loss, maxillary anterior teeth should be placed:", options: ["Lingual to the ridge", "Labial to the residual ridge", "Directly on the crest", "Behind the rugae"], correctAnswer: "Labial to the residual ridge" },
+                    { text: "Palatal cusps of maxillary posterior teeth should be centered over the:", options: ["Maxillary ridge", "Mandibular ridge", "Tongue", "Cheek"], correctAnswer: "Mandibular ridge" },
+                    { text: "Mandibular posteriors should NOT go beyond a line from the distal of canine to the:", options: ["Mentolabial sulcus", "Lingual of the retromolar pad", "Buccal frenum", "Midline"], correctAnswer: "Lingual of the retromolar pad" },
+                    { text: "In 'Tapered arches', the central incisors are arranged ____ forward than canines.", options: ["Less", "Further", "Equally", "Not"], correctAnswer: "Further" },
+                    { text: "In 'Ovoid arches', anterior teeth are arranged in a:", options: ["Straight line", "Gentle curve", "V-shape", "Square shape"], correctAnswer: "Gentle curve" },
+                    { text: "The distance from the center of the incisive papilla to the central incisal edge is:", options: ["2 mm", "5 mm", "10–12 mm", "20 mm"], correctAnswer: "10–12 mm" },
+                    { text: "The distance from the canine labial surface to the rugae lateral margin is:", options: ["5 mm", "10.5 mm", "20 mm", "1 mm"], correctAnswer: "10.5 mm" },
+                    { text: "The posterior occlusal plane (height) is determined by a line from the lower canine tip to the:", options: ["Top of the tongue", "Upper 2/3 of the retromolar pad", "Hard palate", "Mental foramen"], correctAnswer: "Upper 2/3 of the retromolar pad" },
+                    { text: "The posterior occlusal plane is also called the:", options: ["Curve of Spee", "Camper’s line", "Philtrum", "Neutral zone"], correctAnswer: "Curve of Spee" },
+                    { text: "A 'Feminine smile' is characterized by a curved smile line that coincides with the:", options: ["Upper lip", "Lower lip", "Tongue", "Teeth only"], correctAnswer: "Lower lip" },
+                    { text: "In the Dentogenic Concept, 'Vigorous look' is common in:", options: ["Women", "Men", "Children", "Infants"], correctAnswer: "Men" },
+                    { text: "With age, natural incisors tend to abrade in a:", options: ["Curve", "Straight line", "Circle", "V-shape"], correctAnswer: "Straight line" },
+                    { text: "To check aesthetics and phonetics, the upper incisal edges should touch the lower lip when saying:", options: ["Ah", "Fifty-five (F and V sounds)", "S", "M"], correctAnswer: "Fifty-five (F and V sounds)" },
+                    { text: "The 'Neutral Zone' is where the musculature has ____ tendency to displace the denture.", options: ["Maximum", "Least", "Constant", "No"], correctAnswer: "Least" },
+                    { text: "Balanced occlusion means denture teeth should contact during:", options: ["Only closing", "Lateral and protrusive movements", "Only smiling", "Only speaking"], correctAnswer: "Lateral and protrusive movements" },
+                    { text: "Maxillary Central Incisors viewed labially have their long axis ____ to the occlusal plane.", options: ["At 45°", "Perpendicular", "Parallel", "Horizontal"], correctAnswer: "Perpendicular" },
+                    { text: "Maxillary Central Incisors viewed proximally are inclined slightly:", options: ["Lingually", "Labially", "Distally", "Upward"], correctAnswer: "Labially" },
+                    { text: "Maxillary Lateral Incisal edges are ____ compared to the central incisors.", options: ["Touching the plane", "Raised 1 mm", "Lowered 2 mm", "At the same height"], correctAnswer: "Raised 1 mm" },
+                    { text: "Maxillary Lateral Incisors have a long axis that is slightly ____ labially.", options: ["Mesial", "Distal", "Straight", "Protrusive"], correctAnswer: "Distal" },
+                    { text: "The 'Canine tip' of the maxillary canine ____ the occlusal plane.", options: ["Does not touch", "Touches", "Is 2 mm above", "Is below"], correctAnswer: "Touches" },
+                    { text: "Mandibular Central Incisors overlap maxillary anterior teeth by:", options: ["0 mm", "1–1.5 mm", "5 mm", "10 mm"], correctAnswer: "1–1.5 mm" },
+                    { text: "The occlusal height of Mandibular Lateral Incisors is ____ the central incisors.", options: ["Lower than", "The same as", "Higher than", "Distal to"], correctAnswer: "The same as" },
+                    { text: "Mandibular Canine long axis proximally is inclined:", options: ["Labially", "Upwards and lingually", "Downwards", "Horizontally"], correctAnswer: "Upwards and lingually" },
+                    { text: "In Upper First Premolars, which cusp touches the occlusal plane?", options: ["Palatal cusp", "Buccal cusp", "Both cusps", "Neither cusp"], correctAnswer: "Buccal cusp" },
+                    { text: "In Upper Second Premolars, which cusp touches the occlusal plane?", options: ["Only buccal", "Only palatal", "Both cusps (Buccal and Palatal)", "Neither"], correctAnswer: "Both cusps (Buccal and Palatal)" },
+                    { text: "In Upper First Molars, which cusp contacts the occlusal plane?", options: ["Mesiobuccal", "Mesiopalatal", "Distobuccal", "Distopalatal"], correctAnswer: "Mesiopalatal" },
+                    { text: "The Upper Second Molar is located ____ the occlusal plane.", options: ["On", "1.0 mm above", "2 mm below", "Behind"], correctAnswer: "1.0 mm above" },
+                    { text: "The Lower First Premolar buccal cusp touches the ____ of the upper first premolar.", options: ["Cusp tip", "Mesial marginal ridge", "Central fossa", "Palatal surface"], correctAnswer: "Mesial marginal ridge" },
+                    { text: "The Lower Second Premolar buccal cusp touches the ____ marginal ridge of the upper first premolar.", options: ["Mesial", "Distal", "Lingual", "Labial"], correctAnswer: "Distal" },
+                    { text: "The Mesiopalatal cusp of the maxillary 1st molar rests on the ____ of the mandibular 1st molar.", options: ["Buccal cusp", "Central fossa", "Marginal ridge", "Lingual cusp"], correctAnswer: "Central fossa" },
+                    { text: "The Mesiobuccal cusp of the maxillary 1st molar coincides with the ____ of the mandibular 1st molar.", options: ["Central fossa", "Mesiobuccal groove", "Distal groove", "Cusp tip"], correctAnswer: "Mesiobuccal groove" },
+                    { text: "Lower Second Molars have a ____ inclination than the first molar.", options: ["Smaller", "Greater (lingual and mesial)", "Zero", "Reverse"], correctAnswer: "Greater (lingual and mesial)" },
+                    { text: "Teeth arrangement according to ridge relations is classified into ____ classes.", options: ["Two", "Three (I, II, III)", "Five", "Ten"], correctAnswer: "Three (I, II, III)" },
+                    { text: "When arranging teeth, irregularities may be reproduced to improve:", options: ["Support", "Aesthetics", "Strength", "Color"], correctAnswer: "Aesthetics" },
+                    { text: "The long axis of the Maxillary Central Incisor proximally is inclined:", options: ["Upward", "Downwards and slightly labially", "Lingually", "Distally"], correctAnswer: "Downwards and slightly labially" },
+                    { text: "The maxillary canine mesio-labial aspect is visible from the:", options: ["Posterior", "Anterior", "Lingual", "Occlusal"], correctAnswer: "Anterior" },
+                    { text: "The lower second premolar lingual cusp rests between the maxillary:", options: ["Canine and 1st premolar", "1st and 2nd premolars", "1st and 2nd molars", "Central and lateral"], correctAnswer: "1st and 2nd premolars" },
+                    { text: "The main goal of balanced occlusion in complete dentures is to provide:", options: ["Sharpness", "Stability during movement", "Less weight", "Faster chewing"], correctAnswer: "Stability during movement" }
+                ]
+            },
+            {
+                id: 12, title: "Lecture 12: Denture Processing", description: "Flasking, wax elimination, curing cycles, and selective grinding.",
+                questions: [
+                    { text: "Denture Processing involves replacing the trial base and wax with:", options: ["Stone", "Heat Cured Acrylic Resin", "Alginate", "Plaster"], correctAnswer: "Heat Cured Acrylic Resin" },
+                    { text: "The first step in denture processing is:", options: ["Flasking", "Waxing up", "Curing", "Polishing"], correctAnswer: "Waxing up" },
+                    { text: "'Waxing-up' is the contouring of trial bases to produce a natural appearance of the:", options: ["Cast", "Finished denture", "Patient's face", "Teeth only"], correctAnswer: "Finished denture" },
+                    { text: "In the upper denture, the buccal surface of the wax should be ____ for stability.", options: ["Convex", "Concave", "Flat", "Sharp"], correctAnswer: "Concave" },
+                    { text: "The even thickness of the palate in a maxillary wax-up should be approximately:", options: ["1 mm", "2.5 mm", "5 mm", "10 mm"], correctAnswer: "2.5 mm" },
+                    { text: "In the lower denture, the lingual flange wax-up should have a slight ____ for the tongue.", options: ["Bulge", "Concavity in the middle", "Sharp edge", "Flatness"], correctAnswer: "Concavity in the middle" },
+                    { text: "The labial flange of a LOWER denture should NOT be thick to avoid displacement by:", options: ["Tongue pressure", "Lip pressure", "Gravity", "Chewing"], correctAnswer: "Lip pressure" },
+                    { text: "'Gingival recession' with round interdental papillae is characteristic of:", options: ["Young patients", "Elderly patients", "All patients", "Children"], correctAnswer: "Elderly patients" },
+                    { text: "The process of surrounding the cast and denture with stone in a metal flask is:", options: ["Waxing", "Flasking", "Packing", "Curing"], correctAnswer: "Flasking" },
+                    { text: "During flasking, separating medium is applied to all EXCEPT:", options: ["Stone surfaces", "The artificial teeth", "The cast", "The flask walls"], correctAnswer: "The artificial teeth" },
+                    { text: "'Wax Elimination' involves placing the flask in boiling water for:", options: ["1 minute", "3-5 minutes", "20 minutes", "1 hour"], correctAnswer: "3-5 minutes" },
+                    { text: "Heat-cured acrylic resin consists of Powder (PMMA) and Liquid (____).", options: ["MMA", "Water", "Monomer", "Acid"], correctAnswer: "MMA" },
+                    { text: "Insufficient wetting of the powder leads to a ____ finished denture.", options: ["Strong", "Weak and granular", "Porous", "Shrinked"], correctAnswer: "Weak and granular" },
+                    { text: "Excess monomer in the mix increases:", options: ["Strength", "Shrinkage and porosity", "Boiling point", "Hardness"], correctAnswer: "Shrinkage and porosity" },
+                    { text: "Acrylic resin is packed into the flask when it reaches the ____ stage.", options: ["Sandy", "Sticky", "Dough", "Rubber"], correctAnswer: "Dough" },
+                    { text: "During packing, there must be intimate ____ contact between flask halves.", options: ["Stone to stone", "Metal to metal", "Wax to wax", "Teeth to teeth"], correctAnswer: "Metal to metal" },
+                    { text: "Curing of acrylic resin can be done using a hot water bath, dry heat, or:", options: ["Freezer", "Microwave", "Sunlight", "Wind"], correctAnswer: "Microwave" },
+                    { text: "The water bath method for curing usually involves boiling for:", options: ["5 minutes", "20 minutes", "2 hours", "24 hours"], correctAnswer: "2 hours" },
+                    { text: "Avoid sudden temperature rises to 100 ºC during curing to prevent:", options: ["Better bonding", "Monomer evaporation (Porosity)", "Over-curing", "Hardening"], correctAnswer: "Monomer evaporation (Porosity)" },
+                    { text: "Under-curing (insufficient time/temp) results in high:", options: ["Strength", "Residual monomer (Irritant)", "Porosity", "Polish"], correctAnswer: "Residual monomer (Irritant)" },
+                    { text: "Over-curing results in ____ of the monomer.", options: ["Freezing", "Vaporization (Porosity)", "Disappearance", "Liquefaction"], correctAnswer: "Vaporization (Porosity)" },
+                    { text: "Allowing the flask to cool slowly to room temperature is called:", options: ["Quenching", "Bench Cooling", "Freezing", "Air blowing"], correctAnswer: "Bench Cooling" },
+                    { text: "Rapid cooling of the flask may increase the risk of:", options: ["Higher strength", "Distortion and internal stresses", "Better color", "Faster polishing"], correctAnswer: "Distortion and internal stresses" },
+                    { text: "'Deflasking' is the careful removal of the denture and cast from the:", options: ["Articulator", "Flask and stone", "Patient's mouth", "Wax"], correctAnswer: "Flask and stone" },
+                    { text: "'Laboratory Remounting' is performed using the ____ technique.", options: ["One-piece", "Split cast (V-shaped notches)", "Hand-held", "Impression"], correctAnswer: "Split cast (V-shaped notches)" },
+                    { text: "The purpose of Laboratory Remounting is:", options: ["To polish the denture", "To perform Selective Grinding and correct errors", "To change the teeth", "To add more wax"], correctAnswer: "To perform Selective Grinding and correct errors" },
+                    { text: "'Selective Grinding' is performed to balance:", options: ["Centric occlusion", "Lateral movements", "Protrusive movements", "All of the above"], correctAnswer: "All of the above" },
+                    { text: "After laboratory remount, the denture is separated from the cast for:", options: ["Flasking again", "Finishing and Polishing", "Jaw relation", "Impression"], correctAnswer: "Finishing and Polishing" },
+                    { text: "The final refinement of the denture is called:", options: ["Packing", "Finishing", "Curing", "Waxing"], correctAnswer: "Finishing" },
+                    { text: "____ is the final step where the denture is made smooth and shiny.", options: ["Packing", "Polishing", "Flasking", "Elimination"], correctAnswer: "Polishing" },
+                    { text: "Proper contouring during waxing is essential for denture:", options: ["Color", "Stability and Retention", "Weight only", "Softness"], correctAnswer: "Stability and Retention" },
+                    { text: "Palatal festooning in the wax-up primarily helps with:", options: ["Chewing", "Phonetics", "Support", "Boiling"], correctAnswer: "Phonetics" },
+                    { text: "The stone used in flasking should cover the denture ____ to its base.", options: ["Perpendicular", "Parallel (with occlusal surface)", "At an angle", "Irregularly"], correctAnswer: "Parallel (with occlusal surface)" },
+                    { text: "'Stippling' is a waxing technique used on ____ surfaces for aesthetics.", options: ["Fitting", "Facial/Labial", "Occlusal", "Lingual"], correctAnswer: "Facial/Labial" },
+                    { text: "The ratio of powder to liquid must be exact to avoid:", options: ["Color change", "Shrinkage or weakness", "Too much stone", "Too much wax"], correctAnswer: "Shrinkage or weakness" },
+                    { text: "Under-cured resin is weak and ____ to oral tissues.", options: ["Healthy", "Irritant", "Beneficial", "Cooling"], correctAnswer: "Irritant" },
+                    { text: "Porosity in acrylic resin makes it ____ and hard to clean.", options: ["Stronger", "Weak and unhygienic", "Transparent", "Flexible"], correctAnswer: "Weak and unhygienic" },
+                    { text: "'Bench cooling' is necessary to reduce ____ risks.", options: ["Boiling", "Distortion", "Packing", "Waxing"], correctAnswer: "Distortion" },
+                    { text: "The processed denture base should simulate the finished appliance in:", options: ["Only color", "Form, function, and aesthetics", "Weight only", "No way"], correctAnswer: "Form, function, and aesthetics" },
+                    { text: "Denture processing turns a wax trial denture into a/an ____ appliance.", options: ["Temporary", "Durable heat-cured acrylic", "Metallic", "Alginate"], correctAnswer: "Durable heat-cured acrylic" }
+                ]
+            }
+        ];
+
+        const App = () => {
+            const [isLoading, setIsLoading] = useState(true);
+            const [introMessage, setIntroMessage] = useState(false);
+            const [showNudge, setShowNudge] = useState(false);
+            const [view, setView] = useState('home');
+            const [selectedLecture, setSelectedLecture] = useState(null);
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [score, setScore] = useState(0);
+            const [selectedOption, setSelectedOption] = useState(null);
+            const [feedback, setFeedback] = useState(null);
+            const [pendingChoice, setPendingChoice] = useState(null); // For Resume/Restart modal
+            const [isDarkMode, setIsDarkMode] = useState(() => {
+                const saved = localStorage.getItem('theme');
+                return saved === null ? true : saved === 'dark';
+            });
+            const [progress, setProgress] = useState(() => {
+                const saved = localStorage.getItem('prosthoboss_v5_storage');
+                return saved ? JSON.parse(saved) : { totalXP: 0, lectureData: {} };
+            });
+
+            useEffect(() => {
+                const loadingTimer = setTimeout(() => {
+                    setIsLoading(false);
+                    setIntroMessage(true);
+
+                    const introTimer = setTimeout(() => {
+                        setIntroMessage(false);
+                        const gapTimer = setTimeout(() => {
+                            setShowNudge(true);
+                            // Nudge stays until click (no automatic false)
+                        }, 500);
+                    }, 5000); 
+                }, 2500);
+
+                return () => clearTimeout(loadingTimer);
+            }, []);
+
+            useEffect(() => {
+                if (isDarkMode) document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            }, [isDarkMode]);
+
+            useEffect(() => {
+                localStorage.setItem('prosthoboss_v5_storage', JSON.stringify(progress));
+            }, [progress]);
+
+            const currentOptions = useMemo(() => {
+                if (!selectedLecture) return [];
+                const q = selectedLecture.questions[currentIndex];
+                return [...q.options].sort(() => Math.random() - 0.5);
+            }, [selectedLecture, currentIndex]);
+
+            const handleLectureClick = (lecture) => {
+                const data = progress.lectureData[lecture.id];
+                if (data && data.currentIndex > 0 && !data.isCompleted) {
+                    setPendingChoice(lecture);
+                } else {
+                    startFresh(lecture);
+                }
+            };
+
+            const startFresh = (lecture) => {
+                setSelectedLecture(lecture);
+                setCurrentIndex(0);
+                setScore(0);
+                setPendingChoice(null);
+                setView('quiz');
+                window.scrollTo(0,0);
+            };
+
+            const resumeLecture = (lecture) => {
+                const data = progress.lectureData[lecture.id];
+                setSelectedLecture(lecture);
+                setCurrentIndex(data.currentIndex || 0);
+                setScore(data.score || 0);
+                setPendingChoice(null);
+                setView('quiz');
+                window.scrollTo(0,0);
+            };
+
+            const handleAnswer = (option) => {
+                if (feedback) return;
+                const isCorrect = option === selectedLecture.questions[currentIndex].correctAnswer;
+                setSelectedOption(option);
+                setFeedback(isCorrect ? 'correct' : 'incorrect');
+
+                const newScore = isCorrect ? score + 1 : score;
+                if (isCorrect) {
+                    setScore(newScore);
+                    setProgress(p => ({ ...p, totalXP: p.totalXP + 1 }));
+                }
+
+                setTimeout(() => {
+                    const isEnd = currentIndex === selectedLecture.questions.length - 1;
+                    const nextIdx = isEnd ? currentIndex : currentIndex + 1;
+
+                    setProgress(p => {
+                        const existing = p.lectureData[selectedLecture.id] || {};
+                        return {
+                            ...p,
+                            lectureData: {
+                                ...p.lectureData,
+                                [selectedLecture.id]: {
+                                    currentIndex: nextIdx,
+                                    score: newScore,
+                                    isCompleted: isEnd,
+                                    totalCount: selectedLecture.questions.length
+                                }
+                            }
+                        };
+                    });
+
+                    if (isEnd) setView('summary');
+                    else {
+                        setCurrentIndex(currentIndex + 1);
+                        setSelectedOption(null);
+                        setFeedback(null);
+                        window.scrollTo(0,0);
+                    }
+                }, 1500);
+            };
+
+            const TypewriterMessage = () => {
+                const [text, setText] = useState('');
+                const fullText = "جميع الأسئلة تم إنشاؤها بالذكاء الاصطناعي...\nمتنسوش تدعو لـ\nBoss 🤲";
+                
+                useEffect(() => {
+                    let i = 0;
+                    const interval = setInterval(() => {
+                        setText(fullText.substring(0, i));
+                        i++;
+                        if (i > fullText.length) clearInterval(interval);
+                    }, 40);
+                    return () => clearInterval(interval);
+                }, []);
+
+                return (
+                    <div className="typing-container">
+                        <div className="max-w-md w-full">
+                            <span className="text-pink-500 font-black text-xs uppercase tracking-[0.4em] block mb-6 animate-pulse">Initializing Neural Link...</span>
+                            <h2 className="text-white text-3xl md:text-4xl font-black leading-[1.6] typewriter-text">
+                                {text}
+                            </h2>
+                        </div>
+                    </div>
+                );
+            };
+
+            if (isLoading) return (
+                <div className="loading-screen">
+                    <img src="P1.png" alt="Logo" className="w-20 h-20 mb-4 animate__animated animate__pulse animate__infinite" onError={(e) => e.target.style.display='none'} />
+                    <div className="spinner mb-6"></div>
+                    <h1 className="text-2xl font-black text-slate-800 dark:text-white">
+                        Prostho<span className="text-pink-600">Boss</span>
+                    </h1>
+                </div>
+            );
+
+            return (
+                <div className="min-h-screen relative flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-500 overflow-x-hidden">
+                    {introMessage && <TypewriterMessage />}
+                    
+                    {showNudge && (
+                        <div className="full-nudge animate__animated animate__fadeIn" onClick={() => setShowNudge(false)}>
+                            <div className="max-w-lg p-6">
+                                <h1 className="text-7xl md:text-9xl font-black mb-10 drop-shadow-2xl">مش دعيت ليه !🤔</h1>
+                                <p className="text-xl opacity-60 font-bold uppercase tracking-widest animate-bounce">انقر للمتابعة</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Resume/Restart Modal */}
+                    {pendingChoice && (
+                        <div className="fixed inset-0 z-[11000] flex items-center justify-center p-6 bg-slate-900/80 backdrop-blur-md">
+                            <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 max-w-sm w-full text-center shadow-2xl border border-slate-100 dark:border-slate-800 animate__animated animate__zoomIn">
+                                <h2 className="text-3xl font-black mb-4 dark:text-white">Welcome Back!</h2>
+                                <p className="text-slate-500 mb-10">You have existing progress in this lecture. How would you like to proceed?</p>
+                                <div className="flex flex-col gap-4">
+                                    <button onClick={() => resumeLecture(pendingChoice)} className="w-full bg-pink-600 text-white py-5 rounded-[2rem] font-bold text-lg hover:bg-pink-700 transition-all">Resume Quiz</button>
+                                    <button onClick={() => startFresh(pendingChoice)} className="w-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 py-5 rounded-[2rem] font-bold text-lg hover:bg-slate-200 transition-all">Restart Fresh</button>
+                                    <button onClick={() => setPendingChoice(null)} className="mt-4 text-xs uppercase font-black tracking-widest text-slate-400">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <img src="P1.png" alt="" className="floating-side-icon" onError={(e) => e.target.style.display='none'} />
+
+                    {view === 'home' && (
+                        <div className="max-w-4xl mx-auto px-5 py-12 flex-1 w-full animate__animated animate__fadeIn">
+                            <header className="flex justify-between items-center mb-16">
+                                <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center shadow-xl border border-slate-100 dark:border-slate-800 transition-all hover:scale-110 active:scale-95 text-xl">
+                                    {isDarkMode ? '🌞' : '🌙'}
+                                </button>
+                                <div className="text-right">
+                                    <span className="bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-[0.2em]">Clinical Expert</span>
+                                </div>
+                            </header>
+
+                            <div className="text-center mb-24 flex flex-col items-center">
+                                <img src="P1.png" alt="Logo" className="logo-main animate__animated animate__fadeInDown" onError={(e) => e.target.style.display='none'} />
+                                <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-slate-800 dark:text-white mb-2">
+                                    Prostho<span className="text-pink-600 drop-shadow-xl">Boss</span>
+                                </h1>
+                                <p className="text-slate-400 dark:text-slate-500 text-base md:text-lg font-medium max-w-sm mx-auto leading-tight italic">Elite Removable Prosthodontics Mastery.</p>
+                                
+                                <div className="mt-12 flex justify-center">
+                                    <div className="bg-white dark:bg-slate-900 px-10 py-6 rounded-[2.5rem] shadow-2xl border border-slate-50 dark:border-slate-800 transform hover:-translate-y-1 transition-transform">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Lifetime XP</span>
+                                        <span className="text-5xl font-black text-pink-600 tracking-tighter">{progress.totalXP}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-20">
+                                {LECTURES.map(l => {
+                                    const data = progress.lectureData[l.id];
+                                    const perc = data ? Math.floor((data.currentIndex / l.questions.length) * 100) : 0;
+                                    const done = data?.isCompleted;
+
+                                    return (
+                                        <div key={l.id} onClick={() => handleLectureClick(l)} className="bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:border-pink-300 dark:hover:border-pink-500 transition-all cursor-pointer group relative overflow-hidden">
+                                            <div className="flex justify-between items-center mb-6">
+                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg transition-transform group-hover:rotate-12 ${done ? 'bg-pink-600 text-white' : 'bg-pink-50 dark:bg-pink-900/20 text-pink-600'}`}>
+                                                    {l.id}
+                                                </div>
+                                                {perc > 0 && (
+                                                    <span className={`text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-widest ${done ? 'bg-green-100 text-green-600 dark:bg-green-900/20' : 'bg-slate-100 text-slate-400 dark:bg-slate-800'}`}>
+                                                        {done ? 'Mastered' : `${perc}% Done`}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <h3 className="text-xl md:text-2xl font-black dark:text-white group-hover:text-pink-600 transition-colors mb-3 leading-tight">{l.title}</h3>
+                                            <p className="text-slate-400 dark:text-slate-500 text-sm leading-relaxed line-clamp-2 mb-4">{l.description}</p>
+                                            
+                                            {/* Small Progress Bar */}
+                                            {perc > 0 && !done && (
+                                                <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mt-4">
+                                                    <div className="h-full bg-pink-500 transition-all duration-700" style={{width: `${perc}%`}}></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <footer className="mt-auto pt-20 pb-12 border-t border-slate-100 dark:border-slate-900 text-center">
+                                <p className="text-slate-400 dark:text-slate-600 text-sm font-semibold tracking-wide uppercase">
+                                    Digital Craft by <span className="text-pink-600 font-black tracking-tighter">The Boss</span>
+                                </p>
+                            </footer>
+                        </div>
+                    )}
+
+                    {view === 'quiz' && (
+                        <div className="min-h-screen flex flex-col animate__animated animate__fadeIn">
+                            <header className="sticky top-0 z-50 glass-morphism py-4 px-6 border-b border-slate-100 dark:border-slate-900">
+                                <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+                                    <button onClick={() => setView('home')} className="w-10 h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-400 hover:text-pink-600 transition-all active:scale-90 shadow-sm">◀</button>
+                                    <div className="text-center truncate px-2">
+                                        <span className="text-[9px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em] block">Lecture {selectedLecture.id}</span>
+                                        <h2 className="text-xs font-black dark:text-white uppercase truncate tracking-widest">{selectedLecture.title}</h2>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="bg-pink-100 dark:bg-pink-900/30 text-pink-600 px-3 py-1.5 rounded-xl">
+                                            <span className="text-lg font-black">{score} XP</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </header>
+
+                            <main className="flex-1 max-w-3xl mx-auto w-full px-5 py-16">
+                                <div className="mb-14">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <span className="bg-pink-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-pink-200 dark:shadow-none">Question {currentIndex + 1}</span>
+                                        <span className="text-slate-400 dark:text-slate-600 font-black text-[10px] uppercase tracking-widest">/ {selectedLecture.questions.length}</span>
+                                    </div>
+                                    <h1 className="text-3xl md:text-4xl font-black dark:text-white leading-[1.2] tracking-tight">
+                                        {selectedLecture.questions[currentIndex].text}
+                                    </h1>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-4 mb-16">
+                                    {currentOptions.map((opt, i) => {
+                                        const isSel = selectedOption === opt;
+                                        const isCor = opt === selectedLecture.questions[currentIndex].correctAnswer;
+                                        let bCls = "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-pink-300 dark:hover:border-pink-500 shadow-xl shadow-slate-200/50 dark:shadow-none";
+                                        
+                                        if (feedback) {
+                                            if (isCor) bCls = "bg-green-50 border-green-500 text-green-700 dark:bg-green-900/20 dark:text-green-400 animate__animated animate__pulse";
+                                            else if (isSel) bCls = "bg-red-50 border-red-500 text-red-700 dark:bg-red-900/20 dark:text-red-400 shake";
+                                        }
+
+                                        return (
+                                            <button key={i} disabled={!!feedback} onClick={() => handleAnswer(opt)} 
+                                                    className={`option-card p-6 rounded-[2rem] text-left flex items-center justify-between border-2 ${bCls}`}>
+                                                <span className="text-lg font-bold pr-6 leading-tight">{opt}</span>
+                                                <div className={`w-8 h-8 rounded-xl border-2 flex items-center justify-center shrink-0 transition-all ${
+                                                    feedback && isCor ? 'bg-green-500 border-green-500 text-white shadow-xl shadow-green-200 dark:shadow-none' :
+                                                    feedback && isSel ? 'bg-red-500 border-red-500 text-white shadow-xl shadow-red-200 dark:shadow-none' :
+                                                    'border-slate-100 dark:border-slate-700'
+                                                }`}>
+                                                    {feedback ? (isCor ? '✓' : (isSel ? '✕' : '')) : ''}
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </main>
+                        </div>
+                    )}
+
+                    {view === 'summary' && (
+                        <div className="max-w-2xl mx-auto px-6 py-24 text-center animate__animated animate__zoomIn flex-1 flex flex-col justify-center">
+                            <img src="P1.png" alt="Logo" className="w-32 h-32 mx-auto mb-10 animate__animated animate__bounceIn" onError={(e) => e.target.style.display='none'} />
+                            <h2 className="text-5xl font-black text-slate-800 dark:text-white mb-4 tracking-tighter">Level Clear!</h2>
+                            <p className="text-slate-400 dark:text-slate-500 text-lg mb-12 font-medium tracking-tight">Your clinical achievements are now encrypted in the vault.</p>
+
+                            <div className="grid grid-cols-2 gap-6 mb-16">
+                                <div className="bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-50 dark:border-slate-800 shadow-2xl">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">XP Gained</span>
+                                    <span className="text-4xl font-black text-pink-600 tracking-tighter">+{score}</span>
+                                </div>
+                                <div className="bg-white dark:bg-slate-900 p-8 rounded-[3rem] border border-slate-50 dark:border-slate-800 shadow-2xl">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Status</span>
+                                    <span className="text-4xl font-black text-green-500 tracking-tighter uppercase">Boss</span>
+                                </div>
+                            </div>
+
+                            <button onClick={() => setView('home')} className="w-full bg-pink-600 text-white py-6 rounded-[2.5rem] font-black text-xl hover:bg-pink-700 shadow-2xl shadow-pink-200 dark:shadow-none transition-all active:scale-95 mb-20">Confirm & Exit</button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
