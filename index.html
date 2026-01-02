@@ -140,7 +140,7 @@
         .full-nudge {
             position: fixed;
             inset: 0;
-            background: #000; /* Background is now black as requested */
+            background: #000;
             z-index: 10000;
             display: flex;
             align-items: center;
@@ -170,7 +170,6 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
 
-        // Full Question Data (440 total)
         const LECTURES = [
             {
                 id: 1, title: "Lecture 1: Introduction to Technology", description: "Definitions, foundations, and clinical vs laboratory procedures.",
@@ -215,7 +214,7 @@
                     { text: "The Inter-pupillary line is used to establish the:", options: ["Posterior occlusal plane", "Anterior occlusal plane", "Condyle position", "Vertical dimension"], correctAnswer: "Anterior occlusal plane" },
                     { text: "Camper’s line (Ala-tragus line) is used to establish the:", options: ["Anterior occlusal plane", "Posterior occlusal plane", "Philtrum depth", "Mentolabial sulcus"], correctAnswer: "Posterior occlusal plane" },
                     { text: "The Canthus-tragus line is used to locate the:", options: ["Lip thickness", "Condyle position", "Vertical dimension", "Nasolabial sulcus"], correctAnswer: "Condyle position" },
-                    { text: "In Class I jaw relationship, the mentolabial angle is usually:", options: ["Acute", "Obتuse (gentle curve)", "180 degrees", "45 degrees"], correctAnswer: "Obتuse (gentle curve)" },
+                    { text: "In Class I jaw relationship, the mentolabial angle is usually:", options: ["Acute", "Obtuse (gentle curve)", "180 degrees", "45 degrees"], correctAnswer: "Obtuse (gentle curve)" },
                     { text: "Which landmark flattens after tooth loss and is restored by proper tooth positioning?", options: ["Mentolabial sulcus", "Philtrum", "Modiolus", "Ala-tragus line"], correctAnswer: "Philtrum" },
                     { text: "A convex facial profile is seen in:", options: ["Class I", "Class II", "Class III", "All edentulous patients"], correctAnswer: "Class II" },
                     { text: "The 'Ala' refers to the:", options: ["Ear", "Eye corner", "Side of the nose", "Chin"], correctAnswer: "Side of the nose" },
@@ -313,7 +312,7 @@
                 ]
             },
             {
-                id: 5, title: "Lecture 5: Impression Trays", description: "Stock vs custom trays, spacer design, and materials like acrylic.",
+                id: 5, title: "Lecture 5: Impression Trays", description: "Design, types, and materials for custom and stock trays.",
                 questions: [
                     { text: "An instrument used for carrying and supporting impression material is:", options: ["Articulator", "Impression Tray", "Special Tray", "Cast"], correctAnswer: "Impression Tray" },
                     { text: "A 'Cast' is a ____ reproduction of the arch.", options: ["Negative", "Positive", "Temporary", "Primary"], correctAnswer: "Positive" },
@@ -358,7 +357,7 @@
                 ]
             },
             {
-                id: 6, title: "Lecture 6: Posterior Palatal Seal & Relief", description: "Retention principles, vibrating lines, and pressure relief techniques.",
+                id: 6, title: "Lecture 6: Posterior Palatal Seal & Relief", description: "Clinical techniques for retention and pressure management.",
                 questions: [
                     { text: "The PPS is produced by displacing tissues covering the:", options: ["Hard palate", "Soft palate", "Alveolar ridge", "Buccal shelf"], correctAnswer: "Soft palate" },
                     { text: "The primary purpose of the Posterior Palatal Seal (PPS) is:", options: ["Aesthetics", "Retention", "Support", "Comfort only"], correctAnswer: "Retention" },
@@ -403,7 +402,7 @@
                 ]
             },
             {
-                id: 7, title: "Lecture 7: Boxing-in Final Impression", description: "Building vertical walls, bead wax, and master cast preservation.",
+                id: 7, title: "Lecture 7: Boxing-in Final Impression", description: "Preserving border detail and creating accurate master casts.",
                 questions: [
                     { text: "Boxing-in is the process of building vertical walls around the:", options: ["Patient's face", "Final impression", "Preliminary cast", "Articulator"], correctAnswer: "Final impression" },
                     { text: "One main purpose of boxing is to produce a container for:", options: ["Saliva", "Pouring the stone", "Storing teeth", "Mixing monomer"], correctAnswer: "Pouring the stone" },
@@ -448,7 +447,7 @@
                 ]
             },
             {
-                id: 8, title: "Lecture 8: Record Blocks", description: "Record bases, occlusion rims, and maxillary-mandibular relations.",
+                id: 8, title: "Lecture 8: Record Blocks", description: "Constructing record bases and occlusion rims.",
                 questions: [
                     { text: "A record block is used for recording ____ relations.", options: ["Only vertical", "Maxillo-mandibular", "Only horizontal", "Aesthetic"], correctAnswer: "Maxillo-mandibular" },
                     { text: "The components of a record block are:", options: ["Tray and material", "Record base and occlusion rim", "Cast and articulator", "Teeth and wax"], correctAnswer: "Record base and occlusion rim" },
@@ -583,7 +582,7 @@
                 ]
             },
             {
-                id: 11, title: "Lecture 11: Teeth Arrangement", description: "Bone loss compensation, neutral zone, and balanced occlusion goals.",
+                id: 11, title: "Lecture 11: Teeth Arrangement", description: "Tooth positioning principles and aesthetic considerations.",
                 questions: [
                     { text: "Bone loss in the maxilla occurs:", options: ["Only vertically", "Vertically, labially, and buccally", "Vertically and lingually", "Only buccally"], correctAnswer: "Vertically, labially, and buccally" },
                     { text: "Bone loss in the mandible occurs:", options: ["Vertically and buccally", "Vertically and lingually", "Only labially", "It does not occur"], correctAnswer: "Vertically and lingually" },
@@ -628,7 +627,7 @@
                 ]
             },
             {
-                id: 12, title: "Lecture 12: Denture Processing", description: "Flasking, wax elimination, curing cycles, and selective grinding.",
+                id: 12, title: "Lecture 12: Denture Processing", description: "Flasking, curing, and polishing techniques.",
                 questions: [
                     { text: "Denture Processing involves replacing the trial base and wax with:", options: ["Stone", "Heat Cured Acrylic Resin", "Alginate", "Plaster"], correctAnswer: "Heat Cured Acrylic Resin" },
                     { text: "The first step in denture processing is:", options: ["Flasking", "Waxing up", "Curing", "Polishing"], correctAnswer: "Waxing up" },
@@ -684,13 +683,13 @@
             const [score, setScore] = useState(0);
             const [selectedOption, setSelectedOption] = useState(null);
             const [feedback, setFeedback] = useState(null);
-            const [pendingChoice, setPendingChoice] = useState(null); // For Resume/Restart modal
+            const [pendingChoice, setPendingChoice] = useState(null);
             const [isDarkMode, setIsDarkMode] = useState(() => {
                 const saved = localStorage.getItem('theme');
                 return saved === null ? true : saved === 'dark';
             });
             const [progress, setProgress] = useState(() => {
-                const saved = localStorage.getItem('prosthoboss_v5_storage');
+                const saved = localStorage.getItem('prosthoboss_v6_storage');
                 return saved ? JSON.parse(saved) : { totalXP: 0, lectureData: {} };
             });
 
@@ -698,16 +697,13 @@
                 const loadingTimer = setTimeout(() => {
                     setIsLoading(false);
                     setIntroMessage(true);
-
                     const introTimer = setTimeout(() => {
                         setIntroMessage(false);
                         const gapTimer = setTimeout(() => {
                             setShowNudge(true);
-                            // Nudge stays until click (no automatic false)
                         }, 500);
                     }, 5000); 
                 }, 2500);
-
                 return () => clearTimeout(loadingTimer);
             }, []);
 
@@ -718,7 +714,7 @@
             }, [isDarkMode]);
 
             useEffect(() => {
-                localStorage.setItem('prosthoboss_v5_storage', JSON.stringify(progress));
+                localStorage.setItem('prosthoboss_v6_storage', JSON.stringify(progress));
             }, [progress]);
 
             const currentOptions = useMemo(() => {
@@ -772,7 +768,6 @@
                     const nextIdx = isEnd ? currentIndex : currentIndex + 1;
 
                     setProgress(p => {
-                        const existing = p.lectureData[selectedLecture.id] || {};
                         return {
                             ...p,
                             lectureData: {
@@ -814,7 +809,7 @@
                 return (
                     <div className="typing-container">
                         <div className="max-w-md w-full">
-                            <span className="text-pink-500 font-black text-xs uppercase tracking-[0.4em] block mb-6 animate-pulse">Initializing Neural Link...</span>
+                            <span className="text-pink-500 font-black text-xs uppercase tracking-[0.4em] block mb-6 animate-pulse">Initializing neural link...</span>
                             <h2 className="text-white text-3xl md:text-4xl font-black leading-[1.6] typewriter-text">
                                 {text}
                             </h2>
@@ -846,7 +841,6 @@
                         </div>
                     )}
 
-                    {/* Resume/Restart Modal */}
                     {pendingChoice && (
                         <div className="fixed inset-0 z-[11000] flex items-center justify-center p-6 bg-slate-900/80 backdrop-blur-md">
                             <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 max-w-sm w-full text-center shadow-2xl border border-slate-100 dark:border-slate-800 animate__animated animate__zoomIn">
@@ -869,9 +863,10 @@
                                 <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center shadow-xl border border-slate-100 dark:border-slate-800 transition-all hover:scale-110 active:scale-95 text-xl">
                                     {isDarkMode ? '🌞' : '🌙'}
                                 </button>
-                                <div className="text-right">
-                                    <span className="bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-[0.2em]">Clinical Expert</span>
-                                </div>
+                                <a href="ES=R.pdf" download className="bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 text-[10px] font-black px-4 py-2 rounded-xl uppercase tracking-widest flex items-center gap-2 hover:scale-105 transition-transform active:scale-95 shadow-sm border border-pink-200 dark:border-pink-800/50">
+                                    <span>Download Essay Guide</span>
+                                    <span className="text-base">📥</span>
+                                </a>
                             </header>
 
                             <div className="text-center mb-24 flex flex-col items-center">
@@ -910,7 +905,6 @@
                                             <h3 className="text-xl md:text-2xl font-black dark:text-white group-hover:text-pink-600 transition-colors mb-3 leading-tight">{l.title}</h3>
                                             <p className="text-slate-400 dark:text-slate-500 text-sm leading-relaxed line-clamp-2 mb-4">{l.description}</p>
                                             
-                                            {/* Small Progress Bar */}
                                             {perc > 0 && !done && (
                                                 <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mt-4">
                                                     <div className="h-full bg-pink-500 transition-all duration-700" style={{width: `${perc}%`}}></div>
